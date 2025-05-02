@@ -13,6 +13,7 @@ export const useAuthStore = create(
       user: null,
       isLoading: false,
       error: null,
+      hasHydrated: false,
 
       getUser: async () => {
         set({ isLoading: true });
@@ -182,17 +183,20 @@ export const useAuthStore = create(
         user: state.user,
         isLoading: false,
         error: null,
+        hasHydrated: state.hasHydrated,
         signIn: async () => {},
         signUp: async () => {},
         signOut: async () => {},
         getUser: async () => {},
       }),
-        storage: createJSONStorage(() => localStorage),
-      }
-    ),
-    {
-      name: "AuthStore",
-      enabled: process.env.NODE_ENV === "development", 
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        if (state) state.hasHydrated = true;
+      },
     }
-  )
-);
+  ),
+  {
+    name: "AuthStore",
+       enabled: process.env.NODE_ENV === "development", 
+  }
+));

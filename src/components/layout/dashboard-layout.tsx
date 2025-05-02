@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import {
   Layout,
   Palette,
   Code,
+  RefreshCw,
 } from "lucide-react";
 
 interface DashBoardLayoutProps {
@@ -22,9 +23,10 @@ interface DashBoardLayoutProps {
 
 export default function DashBoardLayout({ children }: DashBoardLayoutProps) {
   const pathname = usePathname(); // get the current pathname
+  const router = useRouter(); // for client-side navigation
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, signOut } = useAuthStore(); // get user and signOut function from authStore
+  const { user, signOut, isLoading, hasHydrated } = useAuthStore(); // get user, signOut, isLoading, and hasHydrated from authStore
 
   // * close sidebar on mobile
   useEffect(() => {
@@ -51,6 +53,13 @@ export default function DashBoardLayout({ children }: DashBoardLayoutProps) {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
+  // Redirect to /login if user is null, not loading, and store is hydrated
+  useEffect(() => {
+    if (hasHydrated && !isLoading && !user) {
+      router.replace("/login");
+    }
+  }, [user, isLoading, hasHydrated, router]);
+
   // * navigation items
   const navItems = [
     {
@@ -73,6 +82,16 @@ export default function DashBoardLayout({ children }: DashBoardLayoutProps) {
   const userRole = user?.role || "developer";
   const roleIcon =
     userRole === "designer" ? <Palette size={16} /> : <Code size={16} />;
+
+  // Show loading spinner while auth is hydrating or loading
+  if (!hasHydrated || isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <span className="sr-only">Loading...</span>
+        <RefreshCw className="animate-spin text-blue-500" size={48} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">

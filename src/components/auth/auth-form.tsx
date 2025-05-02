@@ -1,40 +1,50 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { createClient } from "@/lib/supabase/client";
-import type { AuthFormProps } from "@/types/auth";
+
+interface AuthFormProps {
+  mode: "login" | "register";
+}
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [role, setRole] = useState<string>("developer");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const { signIn, signUp } = useAuthStore();
   const supabase = createClient();
+
+  // Get redirect path from URL if present
+  const redirectPath = searchParams.get("redirect") || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       if (mode === "login") {
         await signIn(email, password);
-        router.push("/dashboard");
+        router.push(redirectPath);
       } else {
         await signUp(email, password, username, role);
         // Show success message but don't redirect yet since they need to verify email
-        setError(
+        setSuccess(
           "Please check your email to confirm your account before logging in."
         );
       }
@@ -52,12 +62,15 @@ export function AuthForm({ mode }: AuthFormProps) {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${
+            window.location.origin
+          }/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
         },
       });
 
@@ -68,7 +81,6 @@ export function AuthForm({ mode }: AuthFormProps) {
       } else {
         setError("An unknown error occurred");
       }
-    } finally {
       setLoading(false);
     }
   };
@@ -76,12 +88,15 @@ export function AuthForm({ mode }: AuthFormProps) {
   const handleGithubSignIn = async () => {
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "github",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${
+            window.location.origin
+          }/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
         },
       });
 
@@ -92,7 +107,6 @@ export function AuthForm({ mode }: AuthFormProps) {
       } else {
         setError("An unknown error occurred");
       }
-    } finally {
       setLoading(false);
     }
   };
@@ -120,9 +134,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               id="username"
               placeholder="johndoe"
               value={username}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setUsername(e.target.value)
-              }
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>
@@ -137,9 +149,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="email"
             placeholder="name@example.com"
             value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setEmail(e.target.value)
-            }
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -150,12 +160,12 @@ export function AuthForm({ mode }: AuthFormProps) {
               Password
             </label>
             {mode === "login" && (
-              <a
+              <Link
                 href="/reset-password"
                 className="text-sm text-blue-600 hover:underline"
               >
                 Forgot password?
-              </a>
+              </Link>
             )}
           </div>
           <Input
@@ -163,9 +173,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="password"
             placeholder="••••••••"
             value={password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setPassword(e.target.value)
-            }
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
@@ -178,9 +186,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             <select
               id="role"
               value={role}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setRole(e.target.value)
-              }
+              onChange={(e) => setRole(e.target.value)}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             >
@@ -190,6 +196,14 @@ export function AuthForm({ mode }: AuthFormProps) {
           </div>
         )}
 
+        {/* Success message */}
+        {success && (
+          <div className="bg-green-50 text-green-700 p-3 rounded-md text-sm">
+            {success}
+          </div>
+        )}
+
+        {/* Error message */}
         {error && (
           <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
             {error}
@@ -239,22 +253,22 @@ export function AuthForm({ mode }: AuthFormProps) {
         {mode === "login" ? (
           <p>
             Don&apos;t have an account?{" "}
-            <a
+            <Link
               href="/register"
               className="font-medium text-blue-600 hover:underline"
             >
               Sign up
-            </a>
+            </Link>
           </p>
         ) : (
           <p>
             Already have an account?{" "}
-            <a
+            <Link
               href="/login"
               className="font-medium text-blue-600 hover:underline"
             >
               Sign in
-            </a>
+            </Link>
           </p>
         )}
       </div>

@@ -1,8 +1,3 @@
-// Auth-related types and interfaces
-
-/**
- * Represents a user in the system.
- */
 export type User = {
   id: string;
   email?: string;
@@ -11,13 +6,12 @@ export type User = {
   role?: "designer" | "developer" | "admin";
 };
 
-/**
- * Zustand store state and actions for authentication.
- */
+
 export type AuthState = {
   user: User | null;
   isLoading: boolean;
   error: string | null;
+  hasHydrated: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (
     email: string,
@@ -29,9 +23,3 @@ export type AuthState = {
   getUser: () => Promise<void>;
 };
 
-/**
- * Props for the AuthForm component.
- */
-export interface AuthFormProps {
-  mode: "login" | "register";
-} 
