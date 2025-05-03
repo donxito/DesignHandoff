@@ -38,6 +38,12 @@ export const viewport = {
   themeColor: "#3b82f6", // Blue-600
 };
 
+// TODO: Add a custom font
+// TODO: change the theme color
+// TODO: add a favicon
+// TODO: add a logo
+// TODO: make everything look cool and modern
+
 export default function RootLayout({
   children,
 }: Readonly<{
