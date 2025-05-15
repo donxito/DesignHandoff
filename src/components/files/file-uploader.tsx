@@ -3,6 +3,10 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
 
+// Import RetroUI components
+import { Text } from "@/components/retroui/Text";
+import { Alert } from "@/components/retroui/Alert";
+
 type FileUploaderProps = {
   bucketName: string;
   folderPath?: string;
@@ -133,17 +137,18 @@ export default function FileUploader({
   return (
     <div className="w-full">
       {error && (
-        <div className="mb-4 p-3 text-sm rounded-md bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">
+        <Alert className="mb-6">
           {error}
-        </div>
+        </Alert>
       )}
 
       <div
         className={`
-          border-2 border-dashed rounded-lg p-8 text-center 
+          border-4 border-dashed p-8 text-center 
           transition-colors duration-200 ease-in-out
-          ${isDragging ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-gray-300 dark:border-gray-700"} 
-          ${isUploading ? "opacity-75 cursor-not-allowed" : "cursor-pointer hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20"}
+          shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)]
+          ${isDragging ? "border-primary bg-primary/10" : "border-neutral-900 dark:border-white"} 
+          ${isUploading ? "opacity-75 cursor-not-allowed" : "cursor-pointer hover:border-primary hover:bg-primary/10"}
         `}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -159,45 +164,34 @@ export default function FileUploader({
           disabled={isUploading}
         />
 
-        <div className="flex flex-col items-center justify-center space-y-2">
+        <div className="flex flex-col items-center justify-center space-y-4">
           {isUploading ? (
-            <div className="space-y-2">
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="space-y-2 w-full">
+              <div className="w-full bg-neutral-200 dark:bg-neutral-800 h-4 border-2 border-neutral-900 dark:border-white">
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                  className="bg-primary h-full transition-all duration-300 ease-in-out"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <Text as="p" className="text-sm font-pixel text-center">
                 Uploading... {uploadProgress}%
-              </p>
+              </Text>
             </div>
           ) : (
             <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-12 w-12 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-              <p className="text-sm font-medium">
+              <div className="w-16 h-16 border-4 border-neutral-900 dark:border-white flex items-center justify-center bg-primary">
+                <span className="text-2xl font-pixel">↑</span>
+              </div>
+              <Text as="p" className="text-base font-pixel font-bold">
                 Drag & drop or click to upload
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              </Text>
+              <Text as="p" className="text-sm font-pixel">
                 Supported formats:{" "}
                 {allowedFileTypes.map((type) => type.split("/")[1]).join(", ")}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              </Text>
+              <Text as="p" className="text-sm font-pixel">
                 Max size: {maxFileSize}MB
-              </p>
+              </Text>
             </>
           )}
         </div>

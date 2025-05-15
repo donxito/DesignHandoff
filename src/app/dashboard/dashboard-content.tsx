@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import Header from "@/components/layout/header";
 
+// RetroUI components
+import { Button } from "@/components/retroui/Button";
+import { Text } from "@/components/retroui/Text";
+import { Card } from "@/components/retroui/Card";
+
 type DashboardContentProps = {
   user?: User;
 };
@@ -21,48 +26,52 @@ export default function DashboardContent({ user }: DashboardContentProps = {}) {
 
   // Navigation handlers
   const handleNavigateToUpload = () => {
-    router.push('/dashboard/upload');
+    router.push("/dashboard/upload");
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-white dark:bg-[#121212] bg-[url('/grid-pattern.svg')] dark:bg-[url('/grid-pattern-dark.svg')]">
       <Header />
       <main className="container mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        <p className="mb-4">
+        <Text as="h1" className="text-3xl font-bold mb-6 font-pixel text-black dark:text-white text-adaptive">
+          Dashboard
+        </Text>
+        <Text as="p" className="mb-6 font-pixel text-black dark:text-white text-adaptive">
           Welcome, {currentUser?.email || "User"}
-        </p>
+        </Text>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-2">Your Projects</h2>
-            <p className="text-gray-500 dark:text-gray-400">
+          <Card className="p-6 border-4 border-neutral-900 dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+            <Text as="h2" className="text-xl font-semibold mb-2 font-pixel text-black dark:text-white text-adaptive">
+              Your Projects
+            </Text>
+            <Text as="p" className="mb-4 font-pixel text-black dark:text-white text-adaptive">
               Create and manage your design projects
-            </p>
-            <button className="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-              Create Project
-            </button>
-          </div>
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-2">Recent Files</h2>
-            <p className="text-gray-500 dark:text-gray-400">
+            </Text>
+            <Button className="mt-4 font-pixel">Create Project</Button>
+          </Card>
+          <Card className="p-6 border-4 border-neutral-900 dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+            <Text as="h2" className="text-xl font-semibold mb-2 font-pixel text-black dark:text-white text-adaptive">
+              Recent Files
+            </Text>
+            <Text as="p" className="mb-4 font-pixel text-black dark:text-white text-adaptive">
               View and manage your recent design files
-            </p>
-            <button
+            </Text>
+            <Button
               onClick={handleNavigateToUpload}
-              className="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+              className="mt-4 font-pixel"
             >
               Upload Files
-            </button>
-          </div>
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-2">Team Members</h2>
-            <p className="text-gray-500 dark:text-gray-400">
+            </Button>
+          </Card>
+          <Card className="p-6 border-4 border-neutral-900 dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+            <Text as="h2" className="text-xl font-semibold mb-2 font-pixel text-black dark:text-white text-adaptive">
+              Team Members
+            </Text>
+            <Text as="p" className="mb-4 font-pixel text-black dark:text-white text-adaptive">
               Invite and collaborate with team members
-            </p>
-            <button className="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-              Invite Member
-            </button>
-          </div>
+            </Text>
+            <Button className="mt-4 font-pixel">Invite Member</Button>
+          </Card>
         </div>
       </main>
     </div>

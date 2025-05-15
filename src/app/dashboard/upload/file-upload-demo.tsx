@@ -3,6 +3,12 @@
 import { useState } from "react";
 import FileUploader from "@/components/files/file-uploader";
 
+// Import RetroUI components
+import { Text } from "@/components/retroui/Text";
+import { Alert } from "@/components/retroui/Alert";
+import { Badge } from "@/components/retroui/Badge";
+import { Card } from "@/components/retroui/Card";
+
 export default function FileUploadDemo() {
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ url: string; name: string; type: string }>
@@ -31,17 +37,17 @@ export default function FileUploadDemo() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Upload Design Files</h2>
-      <p className="text-gray-600 dark:text-gray-300 mb-6">
+      <Text as="h2" className="text-xl font-semibold mb-4 font-pixel text-black dark:text-white text-adaptive">Upload Design Files</Text>
+      <Text as="p" className="mb-6 font-pixel text-black dark:text-white text-adaptive">
         Upload your design files to share with developers. Supported formats
         include JPG, PNG, WebP, and PDF.
-      </p>
+      </Text>
 
       {uploadError && (
-        <div className="p-4 mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-          <p className="text-red-600 dark:text-red-400 font-medium">Upload Error</p>
-          <p className="text-sm text-red-500 dark:text-red-300">{uploadError}</p>
-        </div>
+        <Alert className="mb-6">
+          <Text as="p" className="font-medium font-pixel text-black dark:text-white text-adaptive">Upload Error</Text>
+          <Text as="p" className="text-sm font-pixel text-black dark:text-white text-adaptive">{uploadError}</Text>
+        </Alert>
       )}
 
       <FileUploader
@@ -60,50 +66,52 @@ export default function FileUploadDemo() {
 
       {uploadedFiles.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-lg font-medium mb-3">Uploaded Files</h3>
+          <Text as="h3" className="text-lg font-medium mb-3 font-pixel text-black dark:text-white text-adaptive">Uploaded Files</Text>
           <div className="space-y-4">
             {uploadedFiles.map((file, index) => (
-              <div
+              <Card
                 key={index}
-                className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md"
+                className="p-4 border-2 border-neutral-900 dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-medium">{file.name}</span>
-                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 py-1 px-2 rounded">
+                  <Text as="p" className="font-medium font-pixel m-0 text-black dark:text-white text-adaptive">{file.name}</Text>
+                  <Badge variant="default" size="sm" className="text-black dark:text-white">
                     {file.type.split("/")[1].toUpperCase()}
-                  </span>
+                  </Badge>
                 </div>
 
                 {file.type.startsWith("image/") ? (
                   <div className="relative">
-                    <img
-                      src={file.url}
-                      alt={file.name}
-                      className="w-full h-auto rounded-md mt-2 max-h-64 object-contain"
-                      onError={(e) => {
-                        console.error('Image failed to load:', file.url);
-                        // Replace with error UI
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                    <div className="hidden flex-col items-center justify-center p-4 border border-red-200 rounded-md mt-2 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
-                      <p className="text-red-600 dark:text-red-400">Image preview unavailable</p>
+                    <div className="border-2 border-neutral-900 dark:border-white p-1 mt-2">
+                      <img
+                        src={file.url}
+                        alt={file.name}
+                        className="w-full h-auto max-h-64 object-contain"
+                        onError={(e) => {
+                          console.error('Image failed to load:', file.url);
+                          // Replace with error UI
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    </div>
+                    <div className="hidden flex-col items-center justify-center p-4 border-2 border-neutral-900 dark:border-white mt-2">
+                      <Text as="p" className="font-pixel text-black dark:text-white text-adaptive">Image preview unavailable</Text>
                       <a
                         href={file.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-2 text-blue-600 dark:text-blue-400 hover:underline"
+                        className="mt-2 text-primary hover:underline font-pixel"
                       >
                         Open image in new tab
                       </a>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center mt-2">
+                  <div className="flex items-center mt-2 p-2 border-2 border-neutral-900 dark:border-white">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-gray-500 dark:text-gray-400"
+                      className="h-6 w-6 text-neutral-900 dark:text-white"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -119,13 +127,13 @@ export default function FileUploadDemo() {
                       href={file.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="ml-2 text-blue-600 dark:text-blue-400 hover:underline"
+                      className="ml-2 text-primary hover:underline font-pixel"
                     >
                       View Document
                     </a>
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
         </div>
