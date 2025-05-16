@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/retroui/Button";
+import { useUIStore } from "@/lib/store";
 
 export default function ThemeToggle() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { theme, toggleTheme, setTheme } = useUIStore();
   const [mounted, setMounted] = useState(false);
 
-  // Initialize theme on mount
+  // * Initialize theme on mount
   useEffect(() => {
     // Check localStorage first
     const savedTheme = localStorage.getItem("theme");
@@ -15,151 +16,196 @@ export default function ThemeToggle() {
       "(prefers-color-scheme: dark)"
     ).matches;
 
-    // Set initial dark mode state
+    // Set initial theme state
     const initialIsDark = savedTheme === "dark" || (!savedTheme && prefersDark);
 
     // Apply theme to document
     if (initialIsDark) {
       document.documentElement.classList.add("dark");
+      setTheme("dark");
     } else {
       document.documentElement.classList.remove("dark");
+      setTheme("light");
     }
 
-    setIsDarkMode(initialIsDark);
     setMounted(true);
 
     // Log initial theme state
     console.log("Initial theme:", initialIsDark ? "dark" : "light");
-  }, []);
+  }, [setTheme]);
 
-  // Function to apply dark mode styles to specific elements
+  // * Function to apply dark mode styles to specific elements
   const applyDarkModeStyles = () => {
-    // Define CSS variables for dark mode
+    // CSS variables for dark mode
     const darkModeVars = {
-      bgPrimary: '#121212',
-      bgSecondary: '#1e1e1e',
-      bgTertiary: '#2a2a2a',
-      textPrimary: '#f8f9fa',
-      textSecondary: '#e9ecef',
-      border: '#ffffff'
+      bgPrimary: "#121212",
+      bgSecondary: "#1e1e1e",
+      bgTertiary: "#2a2a2a",
+      textPrimary: "#f8f9fa",
+      textSecondary: "#e9ecef",
+      border: "#ffffff",
     };
 
     // Apply CSS variables to the root element
-    document.documentElement.style.setProperty('--bg-primary', darkModeVars.bgPrimary);
-    document.documentElement.style.setProperty('--bg-secondary', darkModeVars.bgSecondary);
-    document.documentElement.style.setProperty('--bg-tertiary', darkModeVars.bgTertiary);
-    document.documentElement.style.setProperty('--text-primary', darkModeVars.textPrimary);
-    document.documentElement.style.setProperty('--text-secondary', darkModeVars.textSecondary);
-    document.documentElement.style.setProperty('--border-color', darkModeVars.border);
+    document.documentElement.style.setProperty(
+      "--bg-primary",
+      darkModeVars.bgPrimary
+    );
+    document.documentElement.style.setProperty(
+      "--bg-secondary",
+      darkModeVars.bgSecondary
+    );
+    document.documentElement.style.setProperty(
+      "--bg-tertiary",
+      darkModeVars.bgTertiary
+    );
+    document.documentElement.style.setProperty(
+      "--text-primary",
+      darkModeVars.textPrimary
+    );
+    document.documentElement.style.setProperty(
+      "--text-secondary",
+      darkModeVars.textSecondary
+    );
+    document.documentElement.style.setProperty(
+      "--border-color",
+      darkModeVars.border
+    );
 
     // Add a class to handle the transition
-    document.documentElement.classList.add('theme-transition');
-    
+    document.documentElement.classList.add("theme-transition");
+
     // Apply the dark class to all elements that need it
-    document.querySelectorAll('.text-adaptive').forEach((el) => {
+    document.querySelectorAll(".text-adaptive").forEach((el) => {
       if (el instanceof HTMLElement) {
         el.style.color = darkModeVars.textPrimary;
       }
     });
 
     // Handle white text that would be invisible in light mode
-    document.querySelectorAll('.text-white').forEach((el) => {
+    document.querySelectorAll(".text-white").forEach((el) => {
       if (el instanceof HTMLElement) {
-        el.dataset.originalColor = 'white'; // Store original color for toggling back
+        el.dataset.originalColor = "white"; // Store original color for toggling back
       }
     });
-    
+
     // Handle SVG icons with white or black fill
     document.querySelectorAll('svg[fill="white"]').forEach((svg) => {
-      svg.setAttribute('data-original-fill', 'white');
-      svg.setAttribute('fill', darkModeVars.textPrimary);
+      svg.setAttribute("data-original-fill", "white");
+      svg.setAttribute("fill", darkModeVars.textPrimary);
     });
 
     document.querySelectorAll('svg[fill="black"]').forEach((svg) => {
-      svg.setAttribute('data-original-fill', 'black');
-      svg.setAttribute('fill', darkModeVars.textPrimary);
+      svg.setAttribute("data-original-fill", "black");
+      svg.setAttribute("fill", darkModeVars.textPrimary);
     });
 
     // Handle specific background classes that don't respond to CSS variables
-    document.querySelectorAll('.bg-white, .bg-neutral-100, .bg-neutral-200, [class*="bg-[#f5f5f5]"]').forEach((el) => {
-      if (el instanceof HTMLElement) {
-        el.dataset.originalBg = el.style.backgroundColor || 'white';
-        el.style.backgroundColor = darkModeVars.bgPrimary;
-      }
-    });
+    document
+      .querySelectorAll(
+        '.bg-white, .bg-neutral-100, .bg-neutral-200, [class*="bg-[#f5f5f5]"]'
+      )
+      .forEach((el) => {
+        if (el instanceof HTMLElement) {
+          el.dataset.originalBg = el.style.backgroundColor || "white";
+          el.style.backgroundColor = darkModeVars.bgPrimary;
+        }
+      });
 
     // Remove the transition class after a delay to avoid transition on initial load
     setTimeout(() => {
-      document.documentElement.classList.remove('theme-transition');
+      document.documentElement.classList.remove("theme-transition");
     }, 500);
   };
 
-  // Function to reset styles for light mode
+  // * Function to reset styles for light mode
   const resetLightModeStyles = () => {
     // Define CSS variables for light mode
     const lightModeVars = {
-      bgPrimary: 'white',
-      bgSecondary: '#f8f9fa',
-      bgTertiary: '#e9ecef',
-      textPrimary: '#212529',
-      textSecondary: '#495057',
-      border: '#000000'
+      bgPrimary: "white",
+      bgSecondary: "#f8f9fa",
+      bgTertiary: "#e9ecef",
+      textPrimary: "#212529",
+      textSecondary: "#495057",
+      border: "#000000",
     };
-    
+
     // Apply CSS variables to the root element
-    document.documentElement.style.setProperty('--bg-primary', lightModeVars.bgPrimary);
-    document.documentElement.style.setProperty('--bg-secondary', lightModeVars.bgSecondary);
-    document.documentElement.style.setProperty('--bg-tertiary', lightModeVars.bgTertiary);
-    document.documentElement.style.setProperty('--text-primary', lightModeVars.textPrimary);
-    document.documentElement.style.setProperty('--text-secondary', lightModeVars.textSecondary);
-    document.documentElement.style.setProperty('--border-color', lightModeVars.border);
+    document.documentElement.style.setProperty(
+      "--bg-primary",
+      lightModeVars.bgPrimary
+    );
+    document.documentElement.style.setProperty(
+      "--bg-secondary",
+      lightModeVars.bgSecondary
+    );
+    document.documentElement.style.setProperty(
+      "--bg-tertiary",
+      lightModeVars.bgTertiary
+    );
+    document.documentElement.style.setProperty(
+      "--text-primary",
+      lightModeVars.textPrimary
+    );
+    document.documentElement.style.setProperty(
+      "--text-secondary",
+      lightModeVars.textSecondary
+    );
+    document.documentElement.style.setProperty(
+      "--border-color",
+      lightModeVars.border
+    );
 
     // Add a class to handle the transition
-    document.documentElement.classList.add('theme-transition');
-    
+    document.documentElement.classList.add("theme-transition");
+
     // Apply the light class to all elements that need it
-    document.querySelectorAll('.text-adaptive').forEach((el) => {
+    document.querySelectorAll(".text-adaptive").forEach((el) => {
       if (el instanceof HTMLElement) {
         el.style.color = lightModeVars.textPrimary;
       }
-    });
-    
-    // Handle white text that would be invisible in light mode
-    document.querySelectorAll('.text-white').forEach((el) => {
-      if (el instanceof HTMLElement) {
-        el.style.color = lightModeVars.textPrimary;
-      }
-    });
-    
-    // Handle SVG icons with white or black fill
-    document.querySelectorAll('svg[data-original-fill="white"], svg[fill="white"]').forEach((svg) => {
-      svg.setAttribute('fill', lightModeVars.textPrimary);
     });
 
-    document.querySelectorAll('svg[data-original-fill="black"], svg[fill="black"]').forEach((svg) => {
-      svg.setAttribute('fill', lightModeVars.textPrimary);
+    // Handle white text that would be invisible in light mode
+    document.querySelectorAll(".text-white").forEach((el) => {
+      if (el instanceof HTMLElement) {
+        el.style.color = lightModeVars.textPrimary;
+      }
     });
+
+    // Handle SVG icons with white or black fill
+    document
+      .querySelectorAll('svg[data-original-fill="white"], svg[fill="white"]')
+      .forEach((svg) => {
+        svg.setAttribute("fill", lightModeVars.textPrimary);
+      });
+
+    document
+      .querySelectorAll('svg[data-original-fill="black"], svg[fill="black"]')
+      .forEach((svg) => {
+        svg.setAttribute("fill", lightModeVars.textPrimary);
+      });
 
     // Reset background colors for elements that had them explicitly set
-    document.querySelectorAll('[data-original-bg]').forEach((el) => {
+    document.querySelectorAll("[data-original-bg]").forEach((el) => {
       if (el instanceof HTMLElement) {
-        const originalBg = el.dataset.originalBg || '';
-        el.style.backgroundColor = originalBg === 'white' ? '' : originalBg;
+        const originalBg = el.dataset.originalBg || "";
+        el.style.backgroundColor = originalBg === "white" ? "" : originalBg;
       }
     });
 
     // Remove the transition class after a delay
     setTimeout(() => {
-      document.documentElement.classList.remove('theme-transition');
+      document.documentElement.classList.remove("theme-transition");
     }, 500);
   };
 
-  // Force a UI update when theme changes
+  // * Force a UI update when theme changes
   useEffect(() => {
     if (!mounted) return;
 
     // Apply theme class to document
-    if (isDarkMode) {
+    if (theme === "dark") {
       // Apply dark mode
       document.documentElement.classList.add("dark");
       document.documentElement.classList.remove("light");
@@ -178,19 +224,18 @@ export default function ThemeToggle() {
     }
 
     // Save preference to localStorage
-    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+    localStorage.setItem("theme", theme);
 
     // Log theme change
-    console.log("Theme updated to:", isDarkMode ? "dark" : "light");
-  }, [isDarkMode, mounted]);
+    console.log("Theme updated to:", theme);
+  }, [theme, mounted]);
 
-  // Toggle theme function
-  const toggleTheme = () => {
-    const newIsDarkMode = !isDarkMode;
-    setIsDarkMode(newIsDarkMode);
-    
+  // * Toggle theme function
+  const handleToggleTheme = () => {
+    toggleTheme();
+
     // Immediately apply the theme change to avoid waiting for the effect
-    if (newIsDarkMode) {
+    if (theme === "light") {
       document.documentElement.classList.add("dark");
       document.documentElement.classList.remove("light");
       document.documentElement.style.colorScheme = "dark";
@@ -201,19 +246,18 @@ export default function ThemeToggle() {
       document.documentElement.style.colorScheme = "light";
       resetLightModeStyles();
     }
-    
-    // Save preference to localStorage
-    localStorage.setItem("theme", newIsDarkMode ? "dark" : "light");
   };
 
   if (!mounted) {
     return null;
   }
 
+  const isDarkMode = theme === "dark";
+
   return (
     <div className="relative">
       <Button
-        onClick={toggleTheme}
+        onClick={handleToggleTheme}
         variant="outline"
         className={`
           w-14 h-14 flex items-center justify-center 
@@ -259,16 +303,6 @@ export default function ThemeToggle() {
           </div>
         )}
       </Button>
-      {/* <span className={`
-        absolute -top-2 -right-2 px-2 py-1 text-xs font-bold rounded-full
-        transition-all duration-200 transform scale-90 hover:scale-100
-        ${isDarkMode ? 
-          'bg-gray-800 text-white border-2 border-white' : 
-          'bg-white text-black border-2 border-black'
-        }
-      `}>
-        {isDarkMode ? 'DARK' : 'LIGHT'}
-      </span> */}
     </div>
   );
 }

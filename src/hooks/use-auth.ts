@@ -1,15 +1,25 @@
-'use client';
+// src/hooks/use-auth.ts
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase/client';
-import { signIn, signUp, signOut, SignInData, SignUpData } from '@/lib/supabase/auth';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase/client";
+import { useAuthStore } from "@/lib/store";
+import { SignInData, SignUpData } from "@/lib/supabase/auth";
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const {
+    user,
+    loading,
+    isAuthenticated,
+    setUser,
+    setLoading,
+    login,
+    register,
+    logout,
+  } = useAuthStore();
 
   useEffect(() => {
     // Check for existing session on mount
@@ -18,7 +28,7 @@ export const useAuth = () => {
         const { data } = await supabase.auth.getSession();
         setUser(data.session?.user ?? null);
       } catch (error) {
-        console.error('Error checking auth:', error);
+        console.error("Error checking auth:", error);
       } finally {
         setLoading(false);
       }
@@ -27,39 +37,18 @@ export const useAuth = () => {
     checkUser();
 
     // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-        router.refresh();
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+      router.refresh();
+    });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [router]);
-
-  const login = async (credentials: SignInData) => {
-    setLoading(true);
-    const { data, error } = await signIn(credentials);
-    setLoading(false);
-    return { data, error };
-  };
-
-  const register = async (credentials: SignUpData) => {
-    setLoading(true);
-    const { data, error } = await signUp(credentials);
-    setLoading(false);
-    return { data, error };
-  };
-
-  const logout = async () => {
-    setLoading(true);
-    const { error } = await signOut();
-    setLoading(false);
-    return { error };
-  };
+  }, [router, setLoading, setUser]);
 
   return {
     user,
@@ -67,6 +56,6 @@ export const useAuth = () => {
     login,
     register,
     logout,
-    isAuthenticated: !!user,
+    isAuthenticated,
   };
 };

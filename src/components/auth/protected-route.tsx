@@ -1,36 +1,27 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuthStore } from "@/lib/store";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
 };
 
-/**
- * Client-side authentication wrapper that ensures users are logged in
- * Acts as a fallback if server-side auth checks fail
- */
+// * Client-side authentication wrapper that ensures users are logged in
+
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { loading, isAuthenticated } = useAuth();
+  const { loading, isAuthenticated } = useAuthStore();
   const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
 
-  // Only run client-side
+  // * Check authentication status once loaded
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Check authentication status once loaded
-  useEffect(() => {
-    if (isClient && !loading && !isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       router.replace("/auth/login");
     }
-  }, [isClient, loading, isAuthenticated, router]);
+  }, [loading, isAuthenticated, router]);
 
-  // Show nothing while checking auth or redirecting
-  if (!isClient || loading || !isAuthenticated) {
+  // * Show nothing while checking auth or redirecting
+  if (loading || !isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="p-4 max-w-sm w-full">
@@ -48,6 +39,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // Render children once authenticated
+  // * Render children once authenticated
   return <>{children}</>;
 }
