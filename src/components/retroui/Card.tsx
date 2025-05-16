@@ -6,50 +6,43 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "primary" | "secondary" | "outline";
 }
 
-const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = "default", ...props }, ref) => {
-    const variantStyles = {
-      default: "bg-white dark:bg-gray-900 border-black dark:border-white",
-      primary: "bg-white dark:bg-gray-900 border-pink-500",
-      secondary: "bg-white dark:bg-gray-900 border-blue-500",
-      outline: "bg-transparent border-black dark:border-white",
-    };
+// Card does not use forwardRef because ref forwarding is not needed for static layout containers.
+const Card = ({ className, variant = "default", ...props }: CardProps) => {
+  const variantStyles = {
+    default: "bg-white dark:bg-gray-900 border-black dark:border-white",
+    primary: "bg-white dark:bg-gray-900 border-pink-500",
+    secondary: "bg-white dark:bg-gray-900 border-blue-500",
+    outline: "bg-transparent border-black dark:border-white",
+  };
 
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "border-3 rounded-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)]",
-          variantStyles[variant],
-          className
-        )}
-        {...props}
-      />
-    );
-  }
-);
+  return (
+    <div
+      className={cn(
+        "border-3 rounded-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)]",
+        variantStyles[variant],
+        className
+      )}
+      {...props}
+    />
+  );
+};
 
 Card.displayName = "Card";
 
-const CardHeader = forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
+// CardHeader does not use forwardRef because ref forwarding is not needed for static layout containers.
+const CardHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
-      ref={ref}
       className={cn("p-6 border-b-3 border-black dark:border-white", className)}
       {...props}
     />
   );
-});
+};
 
 CardHeader.displayName = "CardHeader";
 
-const CardTitle = forwardRef<
-  HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }) => {
+// CardTitle does not use forwardRef because ref forwarding is not needed for static text headings.
+const CardTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
   return (
     <Text
       as="h3"
@@ -59,38 +52,33 @@ const CardTitle = forwardRef<
       {...props}
     />
   );
-});
+};
 
 CardTitle.displayName = "CardTitle";
 
-const CardContent = forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  return <div ref={ref} className={cn("p-6", className)} {...props} />;
-});
+// CardContent does not use forwardRef because ref forwarding is not needed for static layout containers.
+const CardContent = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
+  return <div className={cn("p-6", className)} {...props} />;
+};
 
 CardContent.displayName = "CardContent";
 
-const CardFooter = forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
+// CardFooter does not use forwardRef because ref forwarding is not needed for static layout containers.
+const CardFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
-      ref={ref}
       className={cn("p-6 border-t-3 border-black dark:border-white", className)}
       {...props}
     />
   );
-});
+};
 
 CardFooter.displayName = "CardFooter";
 
-const CardDescription = forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }) => {
+const CardDescription = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) => {
   return (
     <Text
       as="p"
@@ -100,7 +88,7 @@ const CardDescription = forwardRef<
       {...props}
     />
   );
-});
+};
 
 CardDescription.displayName = "CardDescription";
 
