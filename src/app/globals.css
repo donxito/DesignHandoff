@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Color System - Defines all colors used in the application */
+/* Color System - All colors used in the application */
 :root {
   /* Background colors */
   --bg-primary-light: white;
@@ -218,6 +218,60 @@ html, body {
 }
 
 /* Theme transition */
+/* Typing animation for RetroTerminal */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: #4ade80; }
+}
+
+.typing-animation {
+  position: relative;
+  height: 100%;
+  padding-right: 0.5em;
+}
+
+.typing-animation p {
+  position: absolute;
+  margin: 0;
+  padding: 0.25em 0;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 0.15em solid #4ade80;
+  opacity: 0;
+  animation: 
+    typing 2s steps(40, end) forwards,
+    blink-caret 0.75s step-end infinite;
+}
+
+.typing-animation p:nth-child(1) { animation-delay: 0.5s; }
+.typing-animation p:nth-child(2) { animation-delay: 3s; }
+.typing-animation p:nth-child(3) { animation-delay: 6s; }
+.typing-animation p:nth-child(4) { animation-delay: 9s; }
+.typing-animation p:nth-child(5) { animation-delay: 12s; }
+
+/* Show each line with a delay */
+.typing-animation p.show {
+  opacity: 1;
+  position: static;
+  border-right: none;
+  animation: none;
+}
+
+/* Cursor for the active line */
+.typing-animation p.typing {
+  opacity: 1;
+  position: static;
+  border-right: 0.15em solid #4ade80;
+  animation: 
+    typing 2s steps(40, end) forwards,
+    blink-caret 0.75s step-end infinite;
+}
+
 * {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
