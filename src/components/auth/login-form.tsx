@@ -110,7 +110,7 @@ export default function LoginForm() {
 
         <Card.Footer>
           <Text as="p" className="text-center w-full">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/auth/signup"
               className="text-blue-600 font-medium hover:underline"

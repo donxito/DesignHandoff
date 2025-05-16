@@ -31,25 +31,25 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
 
 Card.displayName = "Card";
 
-interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {}
-
-const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn("p-6 border-b-3 border-black dark:border-white", className)}
-        {...props}
-      />
-    );
-  }
-);
+const CardHeader = forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn("p-6 border-b-3 border-black dark:border-white", className)}
+      {...props}
+    />
+  );
+});
 
 CardHeader.displayName = "CardHeader";
 
-interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {}
-
-const CardTitle = ({ className, ...props }: CardTitleProps) => {
+const CardTitle = forwardRef<
+  HTMLHeadingElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }) => {
   return (
     <Text
       as="h3"
@@ -59,45 +59,38 @@ const CardTitle = ({ className, ...props }: CardTitleProps) => {
       {...props}
     />
   );
-};
+});
 
 CardTitle.displayName = "CardTitle";
 
-interface CardContentProps extends HTMLAttributes<HTMLDivElement> {}
-
-const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn("p-6", className)}
-        {...props}
-      />
-    );
-  }
-);
+const CardContent = forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  return <div ref={ref} className={cn("p-6", className)} {...props} />;
+});
 
 CardContent.displayName = "CardContent";
 
-interface CardFooterProps extends HTMLAttributes<HTMLDivElement> {}
-
-const CardFooter = forwardRef<HTMLDivElement, CardFooterProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        className={cn("p-6 border-t-3 border-black dark:border-white", className)}
-        {...props}
-      />
-    );
-  }
-);
+const CardFooter = forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn("p-6 border-t-3 border-black dark:border-white", className)}
+      {...props}
+    />
+  );
+});
 
 CardFooter.displayName = "CardFooter";
 
-interface CardDescriptionProps extends HTMLAttributes<HTMLParagraphElement> {}
-
-const CardDescription = ({ className, ...props }: CardDescriptionProps) => {
+const CardDescription = forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }) => {
   return (
     <Text
       as="p"
@@ -107,7 +100,7 @@ const CardDescription = ({ className, ...props }: CardDescriptionProps) => {
       {...props}
     />
   );
-};
+});
 
 CardDescription.displayName = "CardDescription";
 

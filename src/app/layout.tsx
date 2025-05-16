@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import Script from 'next/script';
 
 // Load Inter font for body text
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
@@ -23,9 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <head>
-        {/* Add theme initialization script to prevent flash of wrong theme */}
-        <script src="/theme-init.js" />
+        {/* Theme initialization script will be loaded with Script component */}
       </head>
+      <Script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js" strategy="afterInteractive" />
       <body
         className={`${inter.variable} font-sans antialiased bg-background text-foreground`}
         suppressHydrationWarning={true}

@@ -86,7 +86,7 @@ export default function FileUploader({
       const fileName = `${timestamp}-${file.name.replace(/\s+/g, "-")}`;
       const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from(bucketName)
         .upload(filePath, file, {
           cacheControl: "3600",

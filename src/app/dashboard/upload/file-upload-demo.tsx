@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import FileUploader from "@/components/files/file-uploader";
+import Image from 'next/image';
 
 // Import RetroUI components
 import { Text } from "@/components/retroui/Text";
@@ -83,17 +84,21 @@ export default function FileUploadDemo() {
                 {file.type.startsWith("image/") ? (
                   <div className="relative">
                     <div className="border-2 border-neutral-900 dark:border-white p-1 mt-2">
-                      <img
-                        src={file.url}
-                        alt={file.name}
-                        className="w-full h-auto max-h-64 object-contain"
-                        onError={(e) => {
-                          console.error('Image failed to load:', file.url);
-                          // Replace with error UI
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
+                      <div className="relative w-full h-64">
+                        <Image
+                          src={file.url}
+                          alt={file.name}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          className="object-contain"
+                          onError={(e) => {
+                            console.error('Image failed to load:', file.url);
+                            // Replace with error UI
+                            (e.target as HTMLImageElement).onerror = null;
+                            (e.target as HTMLImageElement).src = '/file-placeholder.png';
+                          }}
+                        />
+                      </div>
                     </div>
                     <div className="hidden flex-col items-center justify-center p-4 border-2 border-neutral-900 dark:border-white mt-2">
                       <Text as="p" className="font-pixel text-black dark:text-white text-adaptive">Image preview unavailable</Text>

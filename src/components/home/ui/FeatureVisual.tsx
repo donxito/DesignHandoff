@@ -1,17 +1,14 @@
 interface FeatureVisualProps {
   activeFeature: number;
-  features: {
+  features: Array<{
     title: string;
     description: string;
     icon: React.ReactNode;
     color: string;
-  }[];
+  }>;
 }
 
-export default function FeatureVisual({
-  activeFeature,
-  features,
-}: FeatureVisualProps) {
+export default function FeatureVisual({ activeFeature }: FeatureVisualProps) {
   return (
     <>
       {/* Feature 1: Design File Management */}

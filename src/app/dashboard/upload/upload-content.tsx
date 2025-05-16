@@ -1,6 +1,5 @@
 "use client";
 
-import { User } from "@supabase/supabase-js";
 import Header from "@/components/layout/header";
 import FileUploadDemo from "./file-upload-demo";
 import Link from "next/link";
@@ -15,15 +14,11 @@ import {
 } from "@/components/retroui/Breadcrumb";
 import { Button } from "@/components/retroui/Button";
 
-type UploadContentProps = {
-  user?: User;
-};
-
 /**
  * Upload content component that displays the file upload UI
- * Can receive user from server-side or get it from client-side auth context
+ * Uses client-side auth context for user information
  */
-export default function UploadContent({ user }: UploadContentProps = {}) {
+export default function UploadContent() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#121212] bg-[url('/grid-pattern.svg')] dark:bg-[url('/grid-pattern-dark.svg')]">
       <Header />
@@ -31,16 +26,27 @@ export default function UploadContent({ user }: UploadContentProps = {}) {
         <div className="mb-6">
           <Breadcrumb>
             <BreadcrumbItem>
-              <Link href="/dashboard" className="hover:underline text-black dark:text-white text-adaptive">
+              <Link
+                href="/dashboard"
+                className="hover:underline text-black dark:text-white text-adaptive"
+              >
                 Dashboard
               </Link>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
-            <BreadcrumbItem active className="text-black dark:text-white text-adaptive">Upload Files</BreadcrumbItem>
+            <BreadcrumbItem
+              active
+              className="text-black dark:text-white text-adaptive"
+            >
+              Upload Files
+            </BreadcrumbItem>
           </Breadcrumb>
         </div>
 
-        <Text as="h1" className="text-3xl font-bold mb-6 font-pixel text-black dark:text-white text-adaptive">
+        <Text
+          as="h1"
+          className="text-3xl font-bold mb-6 font-pixel text-black dark:text-white text-adaptive"
+        >
           Upload Files
         </Text>
 
@@ -49,7 +55,10 @@ export default function UploadContent({ user }: UploadContentProps = {}) {
 
           <div className="mt-6 flex justify-end">
             <Link href="/dashboard" className="no-underline">
-              <Button variant="outline" className="font-pixel text-black dark:text-white">
+              <Button
+                variant="outline"
+                className="font-pixel text-black dark:text-white"
+              >
                 Back to Dashboard
               </Button>
             </Link>

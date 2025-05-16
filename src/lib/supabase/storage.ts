@@ -23,11 +23,11 @@ export const getPublicUrl = (bucket: string, filePath: string) => {
  * @returns Promise with the upload result
  */
 export const uploadFile = async (bucket: string, filePath: string, file: File) => {
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from(bucket)
     .upload(filePath, file, {
       cacheControl: '3600',
-      upsert: false
+      upsert: true
     });
     
   if (error) {

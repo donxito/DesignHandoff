@@ -1,9 +1,7 @@
 import { cn } from "@/lib/utils";
 import React, { HTMLAttributes } from "react";
 
-export interface BreadcrumbProps extends HTMLAttributes<HTMLDivElement> {}
-
-const Breadcrumb = React.forwardRef<HTMLDivElement, BreadcrumbProps>(
+const Breadcrumb = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
     return (
       <div

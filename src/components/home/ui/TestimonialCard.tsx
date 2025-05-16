@@ -45,7 +45,7 @@ export default function TestimonialCard({
           className={`font-pixel text-black dark:text-white mb-4 p-4 bg-${testimonial.color}-100 dark:bg-${testimonial.color}-900/30 border-2 border-black dark:border-white rounded`}
         >
           <p className="leading-relaxed typing-effect">
-            "{testimonial.content}"
+            &ldquo;{testimonial.content}&rdquo;
           </p>
         </div>
         <div className="flex justify-end">

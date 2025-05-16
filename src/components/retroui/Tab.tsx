@@ -32,9 +32,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
 
 Tabs.displayName = "Tabs";
 
-export interface TabListProps extends HTMLAttributes<HTMLDivElement> {}
-
-const TabList = React.forwardRef<HTMLDivElement, TabListProps>(
+const TabList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
     return (
       <div

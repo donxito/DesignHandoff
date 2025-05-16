@@ -13,7 +13,7 @@ type ProtectedRouteProps = {
  * Acts as a fallback if server-side auth checks fail
  */
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
 

@@ -64,17 +64,11 @@ const Alert = ({ className, variant, status, ...props }: AlertProps) => {
 
 Alert.displayName = "Alert";
 
-interface AlertTitleProps extends HTMLAttributes<HTMLHeadingElement> {}
-
-const AlertTitle = ({ className, ...props }: AlertTitleProps) => (
+const AlertTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
   <Text as="h5" size="lg" weight="bold" className={cn("mb-1", className)} {...props} />
 );
 
-AlertTitle.displayName = "AlertTitle";
-
-interface AlertDescriptionProps extends HTMLAttributes<HTMLParagraphElement> {}
-
-const AlertDescription = ({ className, ...props }: AlertDescriptionProps) => (
+const AlertDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
   <Text as="p" size="base" className={cn("", className)} {...props} />
 );
 

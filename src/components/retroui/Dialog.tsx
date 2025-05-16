@@ -36,9 +36,7 @@ const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
 
 Dialog.displayName = "Dialog";
 
-export interface DialogTriggerProps extends HTMLAttributes<HTMLButtonElement> {}
-
-const DialogTrigger = React.forwardRef<HTMLButtonElement, DialogTriggerProps>(
+const DialogTrigger = React.forwardRef<HTMLButtonElement, React.HTMLAttributes<HTMLButtonElement>>(
   ({ className, children, ...props }, ref) => {
     const context = useContext(DialogContext);
     if (!context) {
@@ -62,9 +60,7 @@ const DialogTrigger = React.forwardRef<HTMLButtonElement, DialogTriggerProps>(
 
 DialogTrigger.displayName = "DialogTrigger";
 
-export interface DialogContentProps extends HTMLAttributes<HTMLDivElement> {}
-
-const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
+const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
     const context = useContext(DialogContext);
     if (!context) {
@@ -108,9 +104,7 @@ const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
 
 DialogContent.displayName = "DialogContent";
 
-export interface DialogHeaderProps extends HTMLAttributes<HTMLDivElement> {}
-
-const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
+const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
     return (
       <div
@@ -129,9 +123,7 @@ const DialogHeader = React.forwardRef<HTMLDivElement, DialogHeaderProps>(
 
 DialogHeader.displayName = "DialogHeader";
 
-export interface DialogFooterProps extends HTMLAttributes<HTMLDivElement> {}
-
-const DialogFooter = React.forwardRef<HTMLDivElement, DialogFooterProps>(
+const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
     return (
       <div
