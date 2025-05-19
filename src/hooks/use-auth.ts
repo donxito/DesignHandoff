@@ -1,12 +1,9 @@
-// src/hooks/use-auth.ts
 "use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase/client";
 import { useAuthStore } from "@/lib/store";
-import { SignInData, SignUpData } from "@/lib/supabase/auth";
 
 export const useAuth = () => {
   const router = useRouter();

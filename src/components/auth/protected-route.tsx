@@ -65,7 +65,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         subscription.unsubscribe();
       }
     };
-  }, [router, setUser, setLoading, supabase]);
+  }, [router, setUser, setLoading]);
 
   // * Show loading state while checking auth
   if (loading || isCheckingAuth) {

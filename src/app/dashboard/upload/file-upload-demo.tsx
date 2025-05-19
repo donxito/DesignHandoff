@@ -46,7 +46,10 @@ export default function FileUploadDemo() {
     setUploadError(`Upload failed: ${error.message}`);
   };
 
-  // ! Demo Function - Using the selected project
+  // * Demo Function - Using the selected project
+  // This function is not used currently but kept for future implementation
+  // of direct file uploads to projects
+  /* 
   const handleUploadFile = async (
     file: File,
     onProgress?: (progress: number) => void
@@ -70,6 +73,7 @@ export default function FileUploadDemo() {
       throw error;
     }
   };
+  */
 
   return (
     <>

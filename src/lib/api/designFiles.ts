@@ -81,7 +81,6 @@ export const designFilesApi = {
     projectId,
     file,
     name,
-    onProgress,
   }: UploadFileParams): Promise<DesignFile> {
     try {
       const { data: sessionData } = await supabase.auth.getSession();

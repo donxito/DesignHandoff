@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const { setUser, setLoading } = useAuthStore();
-  const { theme, setTheme } = useUIStore();
+  const { setTheme } = useUIStore();
 
   // * Initialize auth state
   useEffect(() => {

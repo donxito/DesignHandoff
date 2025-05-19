@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { HTMLAttributes, forwardRef } from "react";
+import { HTMLAttributes } from "react";
 import { Text } from "./Text";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -31,7 +31,7 @@ Card.displayName = "Card";
 const CardHeader = ({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) => {
+}: HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
       className={cn("p-6 border-b-3 border-black dark:border-white", className)}
@@ -109,4 +109,11 @@ const CardComponent = Object.assign(Card, {
 });
 
 // Export both individual components and the compound component
-export { CardComponent as Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription };
+export {
+  CardComponent as Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+  CardDescription,
+};
