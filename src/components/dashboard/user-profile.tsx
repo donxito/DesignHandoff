@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useAuthStore } from "@/lib/store";
+import { useState, useEffect } from "react";
+import { useCurrentUser, useUpdateProfile } from "@/hooks/use-users-query";
 import { Card } from "@/components/retroui/Card";
 import { Text } from "@/components/retroui/Text";
 import { Button } from "@/components/retroui/Button";
@@ -10,33 +10,51 @@ import { Avatar } from "@/components/retroui/Avatar";
 import { Alert } from "@/components/retroui/Alert";
 
 export default function UserProfile() {
-  const { user } = useAuthStore();
+  const { data: user, isLoading } = useCurrentUser();
+  const updateProfileMutation = useUpdateProfile();
+
   const [isEditing, setIsEditing] = useState(false);
-  const [fullName, setFullName] = useState(
-    user?.user_metadata?.full_name || ""
-  );
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fullName, setFullName] = useState(user?.full_name || "");
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Update fullName when user data loads
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || "");
+    }
+  }, [user]);
 
   // * Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSaving(true);
+    setSuccess(null);
 
     try {
-      // TODO: Update user profile in Supabase DB ASAP
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await updateProfileMutation.mutateAsync({
+        full_name: fullName,
+      });
 
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
     } catch (err) {
-      setError("Failed to update profile. Please try again.");
-    } finally {
-      setSaving(false);
+      // Error will be handled by the mutation
+      console.error("Failed to update profile", err);
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card className="max-w-xl p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-20 bg-gray-200 dark:bg-gray-800 rounded-full w-20"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded w-1/2"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-1/3"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-full"></div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="max-w-xl p-6">
@@ -45,9 +63,13 @@ export default function UserProfile() {
       </Card.Header>
 
       <Card.Content>
-        {error && (
+        {updateProfileMutation.isError && (
           <Alert status="error" className="mb-6">
-            <Alert.Description>{error}</Alert.Description>
+            <Alert.Description>
+              {updateProfileMutation.error instanceof Error
+                ? updateProfileMutation.error.message
+                : "Failed to update profile. Please try again."}
+            </Alert.Description>
           </Alert>
         )}
 
@@ -60,13 +82,15 @@ export default function UserProfile() {
         <div className="flex items-center mb-6">
           <Avatar variant="primary" className="w-20 h-20 mr-4">
             <div className="flex items-center justify-center w-full h-full bg-pink-200 text-black font-bold text-2xl">
-              {user?.email ? user.email.charAt(0).toUpperCase() : "?"}
+              {user?.full_name
+                ? user.full_name.charAt(0).toUpperCase()
+                : user?.email?.charAt(0).toUpperCase() || "?"}
             </div>
           </Avatar>
 
           <div>
             <Text as="h3" className="text-xl font-bold">
-              {user?.user_metadata?.full_name || "User"}
+              {user?.full_name || "User"}
             </Text>
             <Text as="p" className="text-gray-600 dark:text-gray-300">
               {user?.email}
@@ -88,12 +112,16 @@ export default function UserProfile() {
                 type="button"
                 variant="outline"
                 onClick={() => setIsEditing(false)}
-                disabled={saving}
+                disabled={updateProfileMutation.isPending}
               >
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" disabled={saving}>
-                {saving ? "Saving..." : "Save Changes"}
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={updateProfileMutation.isPending}
+              >
+                {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </form>
@@ -119,7 +147,7 @@ export default function UserProfile() {
                 Full Name
               </Text>
               <Text as="p" className="font-medium">
-                {user?.user_metadata?.full_name || "Not set"}
+                {user?.full_name || "Not set"}
               </Text>
             </div>
 

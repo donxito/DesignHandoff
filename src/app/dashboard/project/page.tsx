@@ -8,11 +8,12 @@ import { Button } from "@/components/retroui/Button";
 import ProtectedRoute from "@/components/auth/protected-route";
 import Header from "@/components/layout/header";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ProjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
-
+  const queryClient = useQueryClient();
   // Listen for the custom event to open the modal
   useEffect(() => {
     const handleOpenModal = () => {
@@ -29,7 +30,7 @@ export default function ProjectsPage() {
   }, []);
 
   const handleProjectCreated = () => {
-    // Refresh the page to show the new project
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
     router.refresh();
   };
 

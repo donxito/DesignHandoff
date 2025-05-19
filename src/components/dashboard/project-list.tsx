@@ -1,23 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
-import { useProjectStore } from "@/lib/store";
 import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
 import { Badge } from "@/components/retroui/Badge";
+import { useProjects } from "@/hooks/use-project-query";
 
 export default function ProjectList() {
-  const { projects, loading, error, fetchProjects } = useProjectStore();
-
-  // * Fetch projects on mount
-  useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+  const { data: projects, isLoading, error, refetch } = useProjects();
 
   // * Show loading skeleton
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="animate-pulse space-y-6">
         {[1, 2, 3].map((i) => (
@@ -41,13 +35,9 @@ export default function ProjectList() {
           Error Loading Projects
         </Text>
         <Text as="p" className="text-red-600 dark:text-red-400">
-          {error}
+          {error.message}
         </Text>
-        <Button
-          onClick={() => fetchProjects()}
-          variant="outline"
-          className="mt-4"
-        >
+        <Button onClick={() => refetch()} variant="outline" className="mt-4">
           Try Again
         </Button>
       </Card>
@@ -55,7 +45,7 @@ export default function ProjectList() {
   }
 
   // * Show no projects message
-  if (projects.length === 0) {
+  if (!projects || projects.length === 0) {
     return (
       <Card className="p-6 text-center border-dashed">
         <Text as="h3" className="text-xl font-semibold mb-2">

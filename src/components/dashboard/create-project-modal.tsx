@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useProjectStore } from "@/lib/store/projectStore";
+import { useCreateProject } from "@/hooks/use-project-query";
 import {
   Dialog,
   DialogContent,
@@ -28,13 +28,17 @@ export function CreateProjectModal({
   onSuccess,
 }: CreateProjectModalProps) {
   const { user, isAuthenticated } = useAuth();
-  const { createProject } = useProjectStore();
+
+  // * Create Project Mutation
+  const createProjectMutation = useCreateProject();
+
+  // * State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  // Check authentication status when modal opens
+  // * Check authentication status when modal opens
   useEffect(() => {
     if (isOpen && !isAuthenticated) {
       setError("You must be logged in to create a project.");
@@ -43,6 +47,7 @@ export function CreateProjectModal({
     }
   }, [isOpen, isAuthenticated]);
 
+  // * Handle Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -65,25 +70,14 @@ export function CreateProjectModal({
     }
 
     try {
-      console.log("Creating project with data:", { name, description });
-
-      // Use the project store to create the project
-      const { data: project, error: createError } = await createProject({
+      await createProjectMutation.mutateAsync({
         name,
         description: description || null,
       });
 
-      if (createError) {
-        console.error("Project creation error:", createError);
-        setError(`Error creating project: ${createError.message}`);
-        setIsSubmitting(false);
-        return;
-      }
-
       // Reset form
       setName("");
       setDescription("");
-      setIsSubmitting(false);
 
       // Close modal and notify parent of success
       onClose();
@@ -93,7 +87,6 @@ export function CreateProjectModal({
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred"
       );
-      setIsSubmitting(false);
     }
   };
 
