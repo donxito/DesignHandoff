@@ -12,16 +12,11 @@ import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
 import { Input } from "@/components/retroui/Input";
 import { Alert } from "@/components/retroui/Alert";
+import SocialLogin from "./social-login";
 
 export default function SignupForm() {
   const router = useRouter();
-  const {
-    register: registerUser,
-    loading,
-    error,
-    clearError,
-    setError,
-  } = useAuthStore();
+  const { register: registerUser, loading, error, clearError } = useAuthStore();
 
   // * React hook form with Zod validation
   const {
@@ -37,6 +32,7 @@ export default function SignupForm() {
     },
   });
 
+  // * On submit
   const onSubmit = async (data: SignupFormData) => {
     clearError();
 
@@ -138,6 +134,20 @@ export default function SignupForm() {
                 : "Create Account"}
             </Button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          {/* Social Login Buttons */}
+          <SocialLogin />
         </Card.Content>
 
         <Card.Footer>

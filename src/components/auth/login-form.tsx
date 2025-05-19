@@ -13,6 +13,7 @@ import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
 import { Input } from "@/components/retroui/Input";
 import { Alert } from "@/components/retroui/Alert";
+import SocialLogin from "./social-login";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -31,6 +32,7 @@ export default function LoginForm() {
     },
   });
 
+  // * On submit
   const onSubmit = async (data: LoginFormData) => {
     clearError();
 
@@ -110,6 +112,16 @@ export default function LoginForm() {
               error={errors.password?.message}
             />
 
+            {/* Forgot password */}
+            <div className="flex justify-end">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-blue-600 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <Button
               type="submit"
               disabled={loading || isSubmitting}
@@ -120,6 +132,20 @@ export default function LoginForm() {
               {loading || isSubmitting ? "Logging in..." : "Login to Account"}
             </Button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          {/* Social Login Buttons */}
+          <SocialLogin />
         </Card.Content>
 
         <Card.Footer>
