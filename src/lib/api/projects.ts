@@ -54,11 +54,14 @@ export const projectsApi = {
       throw new Error(`Unauthorized: User not authenticated`);
     }
 
+    const userId = sessionData.session.user.id;
+
     const { data, error } = await supabase
       .from("projects")
       .insert({
         name: projectData.name,
-        owner_id: sessionData.session.user.id,
+        owner_id: userId,
+        created_by: userId,
         description: projectData.description || null,
       })
       .select()
