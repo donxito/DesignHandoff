@@ -4,6 +4,8 @@ import { useState } from "react";
 import FileUploader from "@/components/files/file-uploader";
 import Image from "next/image";
 import { useUploadDesignFile } from "@/hooks/use-design-files-query";
+import { ProjectSelector } from "@/components/projects/project-selector";
+import { Project } from "@/lib/types/project";
 // RetroUI components
 import { Text } from "@/components/retroui/Text";
 import { Alert } from "@/components/retroui/Alert";
@@ -15,7 +17,8 @@ export default function FileUploadDemo() {
     Array<{ url: string; name: string; type: string }>
   >([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
-
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  // * Mutation for uploading a design file
   const uploadFileMutation = useUploadDesignFile();
 
   const handleUploadComplete = (url: string, file: File) => {
@@ -43,23 +46,18 @@ export default function FileUploadDemo() {
     setUploadError(`Upload failed: ${error.message}`);
   };
 
-  // ! Demo Function
+  // ! Demo Function - Using the selected project
   const handleUploadFile = async (
     file: File,
     onProgress?: (progress: number) => void
   ) => {
     try {
-      // ! For demo purposes, using a mock project ID
-      // TODO: Get the project ID from the URL or user selection
-      // TODO: Add a loading state
-      // TODO: Add a success state
-      // TODO: Add an error state
-      // TODO: Add a progress state
-
-      const mockProjectId = "demo-project-id";
+      if (!selectedProject) {
+        throw new Error("Please select a project first");
+      }
 
       const result = await uploadFileMutation.mutateAsync({
-        projectId: mockProjectId,
+        projectId: selectedProject.id,
         file,
         name: file.name,
         onProgress,
@@ -89,7 +87,28 @@ export default function FileUploadDemo() {
         include JPG, PNG, WebP, and PDF.
       </Text>
 
+      {/* Project Selector */}
+      <div className="mb-6">
+        <ProjectSelector
+          onSelect={(project) => setSelectedProject(project)}
+          selectedId={selectedProject?.id}
+          label="Select Project for Upload"
+        />
+      </div>
+
       {/* Error Handling */}
+      {!selectedProject && (
+        <Alert className="mb-6">
+          <Text
+            as="p"
+            className="font-medium font-pixel text-black dark:text-white text-adaptive"
+          >
+            Please select a project before uploading files
+          </Text>
+        </Alert>
+      )}
+
+      {/* Upload Error */}
       {uploadError && (
         <Alert className="mb-6">
           <Text
@@ -107,7 +126,7 @@ export default function FileUploadDemo() {
         </Alert>
       )}
 
-      {/* Error Handling */}
+      {/* Upload Error */}
       {uploadFileMutation.isError && (
         <Alert className="mb-6">
           <Text
@@ -140,6 +159,7 @@ export default function FileUploadDemo() {
         maxFileSize={10}
         onUploadComplete={handleUploadComplete}
         onUploadError={handleUploadError}
+        disabled={!selectedProject}
       />
 
       {/* Uploaded Files */}

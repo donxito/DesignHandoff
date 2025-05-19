@@ -2,8 +2,7 @@
 
 import { useState, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
-
-// Import RetroUI components
+// RetroUI components
 import { Text } from "@/components/retroui/Text";
 import { Alert } from "@/components/retroui/Alert";
 
@@ -14,6 +13,7 @@ type FileUploaderProps = {
   maxFileSize?: number; // in MB
   onUploadComplete?: (url: string, file: File) => void;
   onUploadError?: (error: Error) => void;
+  disabled?: boolean;
 };
 
 export default function FileUploader({
@@ -97,6 +97,7 @@ export default function FileUploader({
           //     );
           //     setUploadProgress(percentage);
           //   },
+          // TODO: implement progress bar not from supabase
         });
 
       if (error) {
@@ -136,11 +137,7 @@ export default function FileUploader({
 
   return (
     <div className="w-full">
-      {error && (
-        <Alert className="mb-6">
-          {error}
-        </Alert>
-      )}
+      {error && <Alert className="mb-6">{error}</Alert>}
 
       <div
         className={`
