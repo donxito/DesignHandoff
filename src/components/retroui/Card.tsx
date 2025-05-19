@@ -6,7 +6,6 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "primary" | "secondary" | "outline";
 }
 
-// Card does not use forwardRef because ref forwarding is not needed for static layout containers.
 const Card = ({ className, variant = "default", ...props }: CardProps) => {
   const variantStyles = {
     default: "bg-white dark:bg-gray-900 border-black dark:border-white",
@@ -29,8 +28,10 @@ const Card = ({ className, variant = "default", ...props }: CardProps) => {
 
 Card.displayName = "Card";
 
-// CardHeader does not use forwardRef because ref forwarding is not needed for static layout containers.
-const CardHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
+const CardHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
       className={cn("p-6 border-b-3 border-black dark:border-white", className)}
@@ -41,8 +42,10 @@ const CardHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement
 
 CardHeader.displayName = "CardHeader";
 
-// CardTitle does not use forwardRef because ref forwarding is not needed for static text headings.
-const CardTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+const CardTitle = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) => {
   return (
     <Text
       as="h3"
@@ -56,15 +59,19 @@ const CardTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElem
 
 CardTitle.displayName = "CardTitle";
 
-// CardContent does not use forwardRef because ref forwarding is not needed for static layout containers.
-const CardContent = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
+const CardContent = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => {
   return <div className={cn("p-6", className)} {...props} />;
 };
 
 CardContent.displayName = "CardContent";
 
-// CardFooter does not use forwardRef because ref forwarding is not needed for static layout containers.
-const CardFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
+const CardFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => {
   return (
     <div
       className={cn("p-6 border-t-3 border-black dark:border-white", className)}
@@ -92,12 +99,14 @@ const CardDescription = ({
 
 CardDescription.displayName = "CardDescription";
 
+// Export the Card component with its subcomponents
 const CardComponent = Object.assign(Card, {
   Header: CardHeader,
   Title: CardTitle,
-  Description: CardDescription,
   Content: CardContent,
   Footer: CardFooter,
+  Description: CardDescription,
 });
 
-export { CardComponent as Card };
+// Export both individual components and the compound component
+export { CardComponent as Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription };

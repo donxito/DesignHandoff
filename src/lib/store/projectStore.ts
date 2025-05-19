@@ -104,6 +104,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           name: data.name,
           description: data.description || null,
           owner_id: userId,
+          created_by: userId, 
         })
         .select()
         .single();

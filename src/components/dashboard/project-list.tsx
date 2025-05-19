@@ -64,9 +64,17 @@ export default function ProjectList() {
         <Text as="p" className="mb-6">
           Create your first project to get started.
         </Text>
-        <Link href="/dashboard/project/new">
-          <Button variant="primary">Create First Project</Button>
-        </Link>
+        <Button
+          variant="primary"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              const event = new CustomEvent("openCreateProjectModal");
+              window.dispatchEvent(event);
+            }
+          }}
+        >
+          Create First Project
+        </Button>
       </Card>
     );
   }
