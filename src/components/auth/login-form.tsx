@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
+import { loginSchema, type LoginFormData } from "@/lib/validation/schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 // RetroUI components
 import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
@@ -12,17 +15,30 @@ import { Input } from "@/components/retroui/Input";
 import { Alert } from "@/components/retroui/Alert";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const router = useRouter();
   const { login, loading, error, clearError } = useAuthStore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // * React hook form with Zod validation
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     clearError();
 
     try {
-      const { error } = await login({ email, password });
+      const { error } = await login({
+        email: data.email,
+        password: data.password,
+      });
 
       if (!error) {
         router.push("/dashboard");
@@ -38,6 +54,7 @@ export default function LoginForm() {
       <div className="absolute top-20 left-10 w-20 h-20 bg-yellow-400 border-3 border-black dark:border-white rounded-full opacity-20 animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-16 h-16 bg-pink-400 border-3 border-black dark:border-white rounded-full opacity-20 animate-pulse"></div>
 
+      {/* Login form */}
       <Card className="w-full max-w-md overflow-hidden relative">
         <Card.Header>
           <div className="flex items-center justify-center mb-2">
@@ -56,10 +73,14 @@ export default function LoginForm() {
               </svg>
             </div>
           </div>
+
+          {/* Card title */}
           <Card.Title className="text-center">
             Login to DesignHandoff
           </Card.Title>
         </Card.Header>
+
+        {/* Card content */}
 
         <Card.Content className="px-8 py-6">
           {error && (
@@ -69,39 +90,34 @@ export default function LoginForm() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                label="Email Address"
-                placeholder="your@email.com"
-              />
-            </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <Input
+              id="email"
+              type="email"
+              {...register("email")}
+              label="Email Address"
+              placeholder="your@email.com"
+              error={errors.email?.message}
+            />
 
-            <div>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                label="Password"
-                placeholder="••••••••"
-              />
-            </div>
+            <Input
+              id="password"
+              type="password"
+              {...register("password")}
+              label="Password"
+              placeholder="••••••••"
+              error={errors.password?.message}
+            />
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || isSubmitting}
               className="w-full"
               variant="primary"
               size="lg"
             >
-              {loading ? "Logging in..." : "Login to Account"}
+              {loading || isSubmitting ? "Logging in..." : "Login to Account"}
             </Button>
           </form>
         </Card.Content>

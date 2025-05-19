@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
+import { signupSchema, type SignupFormData } from "@/lib/validation/schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 // RetroUI components
 import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
@@ -12,23 +14,38 @@ import { Input } from "@/components/retroui/Input";
 import { Alert } from "@/components/retroui/Alert";
 
 export default function SignupForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const router = useRouter();
-  const { register, loading, error, clearError, setError } = useAuthStore();
+  const {
+    register: registerUser,
+    loading,
+    error,
+    clearError,
+    setError,
+  } = useAuthStore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // * React hook form with Zod validation
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      fullName: "",
+    },
+  });
+
+  const onSubmit = async (data: SignupFormData) => {
     clearError();
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-
     try {
-      const { error } = await register({ email, password, fullName });
+      const { error } = await registerUser({
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
+      });
 
       if (!error) {
         router.push("/dashboard");
@@ -44,6 +61,7 @@ export default function SignupForm() {
       <div className="absolute top-20 right-10 w-20 h-20 bg-blue-400 border-3 border-black dark:border-white rounded-full opacity-20 animate-pulse"></div>
       <div className="absolute bottom-20 left-10 w-16 h-16 bg-green-400 border-3 border-black dark:border-white rounded-full opacity-20 animate-pulse"></div>
 
+      {/* Signup form */}
       <Card className="w-full max-w-md overflow-hidden relative">
         <Card.Header>
           <div className="flex items-center justify-center mb-2">
@@ -58,7 +76,11 @@ export default function SignupForm() {
               </svg>
             </div>
           </div>
+
+          {/* Card title */}
           <Card.Title className="text-center">Create Your Account</Card.Title>
+
+          {/* Card description */}
           <Text
             as="p"
             size="sm"
@@ -76,58 +98,44 @@ export default function SignupForm() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                label="Full Name"
-                placeholder="John Doe"
-              />
-            </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <Input
+              id="fullName"
+              type="text"
+              {...register("fullName")}
+              label="Full Name"
+              placeholder="John Doe"
+              error={errors.fullName?.message}
+            />
 
-            <div>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                label="Email Address"
-                placeholder="your@email.com"
-              />
-            </div>
+            <Input
+              id="email"
+              type="email"
+              {...register("email")}
+              label="Email Address"
+              placeholder="your@email.com"
+              error={errors.email?.message}
+            />
 
-            <div>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                label="Password"
-                placeholder="••••••••"
-              />
-              <Text
-                as="p"
-                size="xs"
-                className="text-gray-500 dark:text-gray-400 mt-1"
-              >
-                Must be at least 6 characters
-              </Text>
-            </div>
+            <Input
+              id="password"
+              type="password"
+              {...register("password")}
+              label="Password"
+              placeholder="••••••••"
+              error={errors.password?.message}
+            />
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || isSubmitting}
               className="w-full"
               variant="primary"
               size="lg"
             >
-              {loading ? "Creating account..." : "Create Account"}
+              {loading || isSubmitting
+                ? "Creating account..."
+                : "Create Account"}
             </Button>
           </form>
         </Card.Content>

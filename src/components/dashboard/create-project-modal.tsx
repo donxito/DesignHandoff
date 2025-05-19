@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCreateProject } from "@/hooks/use-project-query";
+import { projectSchema, type ProjectFormData } from "@/lib/validation/schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -32,61 +35,60 @@ export function CreateProjectModal({
   // * Create Project Mutation
   const createProjectMutation = useCreateProject();
 
-  // * State
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  // React Hook Form with Zod validation
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError: setFormError,
+    formState: { errors, isSubmitting },
+  } = useForm<ProjectFormData>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
 
   // * Check authentication status when modal opens
   useEffect(() => {
     if (isOpen && !isAuthenticated) {
-      setError("You must be logged in to create a project.");
-    } else {
-      setError(null);
+      setFormError("root", {
+        type: "manual",
+        message: "You must be logged in to create a project.",
+      });
     }
-  }, [isOpen, isAuthenticated]);
+  }, [isOpen, isAuthenticated, setFormError]);
 
   // * Handle Submit
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-
-    // Validate form input
-    if (!name || name.length < 3) {
-      setError("Project name must be at least 3 characters");
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Check if user is authenticated using the useAuth hook
-    if (!isAuthenticated || !user) {
-      setError(
-        "You must be logged in to create a project. Please refresh the page and try again."
-      );
-      setIsSubmitting(false);
-      return;
-    }
-
+  const onSubmit = async (data: ProjectFormData) => {
     try {
-      await createProjectMutation.mutateAsync({
-        name,
-        description: description || null,
-      });
+      // check if user is authenticated
+      if (!isAuthenticated || !user) {
+        setFormError("root", {
+          type: "manual",
+          message: "You must be logged in to create a project.",
+        });
+        return;
+      }
 
-      // Reset form
-      setName("");
-      setDescription("");
+      await createProjectMutation.mutateAsync({
+        name: data.name,
+        description: data.description || null,
+      });
 
       // Close modal and notify parent of success
       onClose();
       onSuccess?.();
+
+      // Reset form
+      reset();
     } catch (err: unknown) {
       console.error("Error:", err);
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
-      );
+      setFormError("root", {
+        type: "manual",
+        message: "An unexpected error occurred",
+      });
     }
   };
 
@@ -102,10 +104,10 @@ export function CreateProjectModal({
           </Text>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {errors.root && (
             <Alert status="error">
-              <Alert.Description>{error}</Alert.Description>
+              <Alert.Description>{errors.root.message}</Alert.Description>
             </Alert>
           )}
 
@@ -113,23 +115,26 @@ export function CreateProjectModal({
             <Label htmlFor="name">Project Name</Label>
             <Input
               id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              {...register("name")}
               placeholder="Enter project name"
-              required
-              minLength={3}
+              error={errors.name?.message}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
             <Textarea
               id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter project description"
+              {...register("description")}
+              placeholder="Enter project description (optional)"
               rows={4}
+              className="w-full px-4 py-2.5 rounded-md bg-white dark:bg-gray-800 border-3 transition-all duration-200 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.5)] focus:translate-x-[2px] focus:translate-y-[2px] focus:outline-none placeholder:text-gray-500 dark:placeholder:text-gray-400 dark:text-white"
+              aria-invalid={!!errors.description}
             />
+            {errors.description?.message && (
+              <Text as="p" size="sm" variant="danger" className="mt-1">
+                {errors.description.message}
+              </Text>
+            )}
           </div>
 
           <DialogFooter>
@@ -137,12 +142,17 @@ export function CreateProjectModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={isSubmitting}
+              disabled={isSubmitting || createProjectMutation.isPending}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Project"}
+            <Button
+              type="submit"
+              disabled={isSubmitting || createProjectMutation.isPending}
+            >
+              {isSubmitting || createProjectMutation.isPending
+                ? "Creating..."
+                : "Create Project"}
             </Button>
           </DialogFooter>
         </form>

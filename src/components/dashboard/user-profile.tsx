@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useCurrentUser, useUpdateProfile } from "@/hooks/use-users-query";
+import { profileSchema, type ProfileFormData } from "@/lib/validation/schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { Card } from "@/components/retroui/Card";
 import { Text } from "@/components/retroui/Text";
 import { Button } from "@/components/retroui/Button";
@@ -14,24 +17,37 @@ export default function UserProfile() {
   const updateProfileMutation = useUpdateProfile();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [fullName, setFullName] = useState(user?.full_name || "");
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Update fullName when user data loads
+  // * React hook form with Zod validation
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      fullName: user?.full_name || "",
+    },
+  });
+
+  // * Update form values when user data loads
   useEffect(() => {
     if (user) {
-      setFullName(user.full_name || "");
+      reset({
+        fullName: user.full_name || "",
+      });
     }
-  }, [user]);
+  }, [user, reset]);
 
   // * Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: ProfileFormData) => {
     setSuccess(null);
 
     try {
       await updateProfileMutation.mutateAsync({
-        full_name: fullName,
+        full_name: data.fullName,
       });
 
       setSuccess("Profile updated successfully!");
@@ -99,12 +115,11 @@ export default function UserProfile() {
         </div>
 
         {isEditing ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
               label="Full Name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
+              {...register("fullName")}
+              error={errors.fullName?.message}
             />
 
             <div className="flex justify-end space-x-2 mt-6">
@@ -112,16 +127,18 @@ export default function UserProfile() {
                 type="button"
                 variant="outline"
                 onClick={() => setIsEditing(false)}
-                disabled={updateProfileMutation.isPending}
+                disabled={isSubmitting || updateProfileMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 variant="primary"
-                disabled={updateProfileMutation.isPending}
+                disabled={isSubmitting || updateProfileMutation.isPending}
               >
-                {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                {isSubmitting || updateProfileMutation.isPending
+                  ? "Saving..."
+                  : "Save Changes"}
               </Button>
             </div>
           </form>

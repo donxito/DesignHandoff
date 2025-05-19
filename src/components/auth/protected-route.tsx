@@ -6,10 +6,14 @@ import { supabase } from "@/lib/supabase/client";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
+  fallback?: React.ReactNode;
 };
 
 // * Client-side authentication wrapper that ensures users are logged in
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+export default function ProtectedRoute({
+  children,
+  fallback,
+}: ProtectedRouteProps) {
   const { loading, isAuthenticated, setUser, setLoading } = useAuthStore();
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -69,7 +73,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // * Show loading state while checking auth
   if (loading || isCheckingAuth) {
-    return (
+    return fallback ? (
+      <>{fallback}</>
+    ) : (
       <div className="flex items-center justify-center min-h-screen">
         <div className="p-4 max-w-sm w-full">
           <div className="animate-pulse flex space-x-4">
