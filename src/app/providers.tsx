@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useUIStore, useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/retroui/toast";
 
 // * Create a query clients
 const queryClient = new QueryClient({
@@ -70,6 +71,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [setTheme]);
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <Toaster />
+    </QueryClientProvider>
   );
 }
