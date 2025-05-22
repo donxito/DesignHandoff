@@ -1,4 +1,4 @@
-import { supabase } from "../supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { User } from "@/lib/types/user";
 
 export const usersApi = {

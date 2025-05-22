@@ -1,6 +1,6 @@
-import { supabase } from "../supabase/client";
-import { Comment, CreateCommentData } from "../types/comment";
-import { User } from "../types/user";
+import { supabase } from "@/lib/supabase/client";
+import { Comment, CreateCommentData } from "@/lib/types/comment";
+import { User } from "@/lib/types/user";
 
 // Define type for raw Supabase response
 type SupabaseCommentResponse = {

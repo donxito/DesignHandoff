@@ -1,6 +1,6 @@
-import { supabase } from "../supabase/client";
-import { DesignFile, UploadFileParams } from "../types/designFile";
-import { User } from "../types/user";
+import { supabase } from "@/lib/supabase/client";
+import { DesignFile, UploadFileParams } from "@/lib/types/designFile";
+import { User } from "@/lib/types/user";
 
 export const designFilesApi = {
   // * Fetches design files for a specific project

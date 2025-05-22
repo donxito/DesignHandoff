@@ -3,7 +3,7 @@ import {
   CreateProjectData,
   Project,
   UpdateProjectData,
-} from "../types/project";
+} from "@/lib/types/project";
 
 export const projectsApi = {
   // * Get all projects for a user
