@@ -6,7 +6,6 @@ import { Project } from "@/lib/types/project";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useDeleteProject } from "@/hooks/use-project-query";
-import { useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/retroui/Card";
 import { Text } from "@/components/retroui/Text";
 import { Badge } from "@/components/retroui/Badge";
@@ -28,7 +27,6 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteProjectMutation = useDeleteProject();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // * Format the date
   const formattedDate = project.created_at
@@ -175,8 +173,8 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
                 as="p"
                 className="text-sm font-pixel text-black dark:text-white"
               >
-                Are you sure you want to delete "{project.name}"? This action
-                cannot be undone.
+                Are you sure you want to delete &quot;{project.name}&quot;? This
+                action cannot be undone.
               </Text>
             </DialogHeader>
 

@@ -65,12 +65,12 @@ export function useToast() {
 
   // * Promise toast helper
   const promise = useCallback(
-    <T extends Promise<any>>(
-      promiseFn: () => T,
+    <T>(
+      promiseFn: () => Promise<T>,
       options: {
         loading: string;
-        success: string | ((data: Awaited<T>) => string);
-        error: string | ((error: any) => string);
+        success: string | ((data: T) => string);
+        error: string | ((error: unknown) => string);
       }
     ) => {
       const id = uuidv4();

@@ -28,7 +28,7 @@ type Notification = {
 
 export const useUIStore = create<UIState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Theme state
       theme: "light",
       setTheme: (theme) => set({ theme }),

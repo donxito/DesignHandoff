@@ -64,10 +64,9 @@ export const designFilesApi = {
   async uploadDesignFile({
     projectId,
     file,
-    fileName,
     fileType,
     name,
-  }: UploadFileParams): Promise<DesignFile> {
+  }: Omit<UploadFileParams, 'fileName'>): Promise<DesignFile> {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
 

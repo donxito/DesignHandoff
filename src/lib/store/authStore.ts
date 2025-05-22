@@ -120,13 +120,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   loginWithProvider: async (provider) => {
     set({ loading: true, error: null });
     try {
-      const { data, error } = await signInWithProvider(provider);
+      const { error } = await signInWithProvider(provider);
       if (error) {
         set({ error: error.message, loading: false });
         return { error };
       }
 
-      // For OAuth, we don't get the user immediately as it redirects to the provider
       set({ loading: false });
       return {};
     } catch (error) {

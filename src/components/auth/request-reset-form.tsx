@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +22,6 @@ type ResetFormData = z.infer<typeof resetSchema>;
 export default function RequestResetForm() {
   const [success, setSuccess] = useState<string | null>(null);
   const { requestPasswordReset, loading, error, clearError } = useAuthStore();
-  const router = useRouter();
 
   const {
     register,
@@ -85,7 +83,7 @@ export default function RequestResetForm() {
             size="sm"
             className="text-center text-gray-600 dark:text-gray-400 mt-1"
           >
-            Enter your email and we'll send you a reset link
+            Enter your email and we&apos;ll send you a reset link
           </Text>
         </Card.Header>
 

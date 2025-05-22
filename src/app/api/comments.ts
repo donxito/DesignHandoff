@@ -2,20 +2,10 @@ import { supabase } from "@/lib/supabase/client";
 import { Comment, CreateCommentData } from "@/lib/types/comment";
 import { User } from "@/lib/types/user";
 
-// Define type for raw Supabase response
-type SupabaseCommentResponse = {
-  id: string;
-  content: string;
-  x: number | null;
-  y: number | null;
-  design_file_id: string;
-  user_id: string;
-  parent_id: string | null;
-  created_at: string;
-  updated_at: string;
+interface CommentWithProfile extends Omit<Comment, "user" | "replies"> {
   profiles: User;
-  replies?: SupabaseCommentResponse[];
-};
+  replies?: CommentWithProfile[];
+}
 
 export const commentsApi = {
   // * Fetches comments for a design file
@@ -41,13 +31,14 @@ export const commentsApi = {
     }
 
     // Map the Supabase result to the Comment type
-    return data.map((comment: any) => {
+    return data.map((comment: unknown) => {
+      const commentData = comment as CommentWithProfile;
       // Transform to our Comment type
       const transformedComment: Comment = {
-        ...comment,
-        user: comment.profiles,
-        replies: Array.isArray(comment.replies)
-          ? comment.replies.map((reply: any) => ({
+        ...commentData,
+        user: commentData.profiles,
+        replies: Array.isArray(commentData.replies)
+          ? commentData.replies.map((reply) => ({
               ...reply,
               user: reply.profiles,
             }))

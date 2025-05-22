@@ -12,7 +12,6 @@ import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
 import { Input } from "@/components/retroui/Input";
 import { Alert } from "@/components/retroui/Alert";
-import { supabase } from "@/lib/supabase/client";
 
 // Schema for the new password
 const resetPasswordSchema = z

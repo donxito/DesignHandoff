@@ -54,7 +54,7 @@ export function ProjectFilesList({ projectId }: ProjectFilesListProps) {
         description: `Downloading ${file.file_name}`,
         variant: "success",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Download error:", error);
       toast({
         message: "Download failed",
@@ -83,12 +83,12 @@ export function ProjectFilesList({ projectId }: ProjectFilesListProps) {
       });
       setIsDeleteDialogOpen(false);
       setSelectedFile(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Delete error:", error);
       toast({
         message: "Delete failed",
         description:
-          error?.message ||
+          (error instanceof Error ? error.message : 'An unknown error occurred') ||
           "There was an error deleting the file. Please try again.",
         variant: "error",
       });
@@ -154,7 +154,7 @@ export function ProjectFilesList({ projectId }: ProjectFilesListProps) {
           Error Loading Files
         </Text>
         <Text as="p" className="text-red-600 dark:text-red-400">
-          {error.message}
+          {(error instanceof Error ? error.message : 'An unknown error occurred') || ""}
         </Text>
         <Button onClick={() => refetch()} variant="outline" className="mt-4">
           Try Again
@@ -333,8 +333,7 @@ export function ProjectFilesList({ projectId }: ProjectFilesListProps) {
                 as="p"
                 className="text-sm font-pixel text-black dark:text-white"
               >
-                Are you sure you want to delete "{selectedFile.file_name}"? This
-                action cannot be undone.
+                Are you sure you want to delete &quot;{selectedFile.file_name}&quot;? This action cannot be undone.
               </Text>
             </DialogHeader>
 

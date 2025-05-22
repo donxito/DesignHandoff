@@ -1,8 +1,8 @@
 "use client";
 
 import { toast as sonnerToast, Toaster as SonnerToaster } from "sonner";
-import { cva, type VariantProps } from "class-variance-authority";
-import { AlertCircle, CheckCircle, Info, AlertTriangle, X } from "lucide-react";
+import { cva } from "class-variance-authority";
+import { AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // * RetroUI styled toast variants
@@ -69,11 +69,8 @@ export function toast({
             ? Info
             : null;
 
-  // * Map our variant to sonner's type
-  const sonnerType = variant === "default" ? undefined : variant;
-
   // * Configure the toast options
-  const options: any = {
+  const options: Record<string, unknown> = {
     description,
     duration,
     position,
@@ -112,13 +109,16 @@ export function toast({
 toast.dismiss = sonnerToast.dismiss;
 
 // * Helper for promise-based toast
-type PromiseData = {
+type PromiseData<T = unknown, E = unknown> = {
   loading: string;
-  success: string | ((data: any) => string);
-  error: string | ((error: any) => string);
+  success: string | ((data: T) => string);
+  error: string | ((error: E) => string);
 };
 
-toast.promise = (promiseFn: () => Promise<any>, options: PromiseData) => {
+toast.promise = <T = unknown, E = unknown>(
+  promiseFn: () => Promise<T>,
+  options: PromiseData<T, E>
+) => {
   return sonnerToast.promise(promiseFn(), {
     ...options,
     className: cn(toastVariants({ variant: "default" })),
