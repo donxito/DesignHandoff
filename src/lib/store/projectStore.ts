@@ -34,7 +34,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   loading: false,
   error: null,
 
-  // Fetch all projects for the current user
+  // * Fetch all projects for the current user
   fetchProjects: async () => {
     set({ loading: true, error: null });
 
@@ -59,7 +59,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
   },
 
-  // Fetch a project by ID
+  // * Fetch a project by ID
   fetchProjectById: async (id) => {
     set({ loading: true, error: null });
 
@@ -85,7 +85,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
   },
 
-  // Create a new project
+  // * Create a new project
   createProject: async (data) => {
     set({ loading: true, error: null });
 
@@ -104,7 +104,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           name: data.name,
           description: data.description || null,
           owner_id: userId,
-          created_by: userId, 
+          created_by: userId,
         })
         .select()
         .single();
@@ -129,7 +129,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
   },
 
-  // Update a project
+  // * Update a project
   updateProject: async (id, data) => {
     set({ loading: true, error: null });
 
@@ -171,16 +171,84 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
   },
 
-  // Delete a project
+  // * Delete a project
   deleteProject: async (id) => {
     set({ loading: true, error: null });
 
     try {
-      const { error } = await supabase.from("projects").delete().eq("id", id);
+      // delete all related project_members
+      const { error: membersError } = await supabase
+        .from("project_members")
+        .delete()
+        .eq("project_id", id);
 
-      if (error) throw error;
+      if (membersError) {
+        console.error(
+          `Failed to delete project members: ${membersError.message}`
+        );
+      }
 
-      // Remove the deleted project from the projects array
+      // get all design files related to this project
+      const { data: designFiles, error: filesQueryError } = await supabase
+        .from("design_files")
+        .select("id")
+        .eq("project_id", id);
+
+      if (filesQueryError) {
+        console.error(
+          `Failed to query design files: ${filesQueryError.message}`
+        );
+      } else if (designFiles && designFiles.length > 0) {
+        // delete all comments related to those files
+        const fileIds = designFiles.map((file) => file.id);
+
+        const { error: commentsError } = await supabase
+          .from("comments")
+          .delete()
+          .in("design_file_id", fileIds);
+
+        if (commentsError) {
+          console.error(
+            `Failed to delete file comments: ${commentsError.message}`
+          );
+        }
+
+        // delete the design files themselves
+        const { error: filesDeleteError } = await supabase
+          .from("design_files")
+          .delete()
+          .eq("project_id", id);
+
+        if (filesDeleteError) {
+          console.error(
+            `Failed to delete design files: ${filesDeleteError.message}`
+          );
+        }
+      }
+
+      // delete the project itself
+      const { error: projectDeleteError, count } = await supabase
+        .from("projects")
+        .delete({ count: "exact" })
+        .eq("id", id);
+
+      console.log("Delete project response:", {
+        error: projectDeleteError,
+        count,
+      });
+
+      if (projectDeleteError) {
+        throw new Error(
+          `Failed to delete project: ${projectDeleteError.message}`
+        );
+      }
+      if (count === 0) {
+        throw new Error(
+          "Project was not deleted. You may not have permission (RLS) or project does not exist."
+        );
+      }
+
+      //  Update the local state
       set((state) => ({
         projects: state.projects.filter((project) => project.id !== id),
         currentProject:

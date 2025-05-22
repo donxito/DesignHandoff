@@ -5,7 +5,7 @@ import {
   UseMutationResult,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { designFilesApi } from "@/lib/api/designFiles";
+import { designFilesApi } from "@/app/api/designFiles";
 import { DesignFile, UploadFileParams } from "@/lib/types/designFile";
 
 // * Query key factory
@@ -69,13 +69,13 @@ export function useUploadDesignFile(): UseMutationResult<
 export function useDeleteDesignFile(): UseMutationResult<
   void,
   Error,
-  { id: string; projectId: string }
+  { id: string; file_url: string; projectId: string }
 > {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id }: { id: string; projectId: string }) =>
-      designFilesApi.deleteDesignFile(id),
+    mutationFn: ({ id, file_url }: { id: string; file_url: string; projectId: string }) =>
+      designFilesApi.deleteDesignFile(id, file_url),
     onSuccess: (_, { id, projectId }) => {
       // Invalidate and refetch files for this project
       queryClient.invalidateQueries({

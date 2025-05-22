@@ -5,7 +5,7 @@ import {
   UseMutationResult,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { usersApi } from "@/lib/api/users";
+import { usersApi } from "@/app/api/users";
 import { User } from "@/lib/types/user";
 
 // * Query key factory

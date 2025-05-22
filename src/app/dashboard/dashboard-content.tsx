@@ -3,7 +3,6 @@
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import Header from "@/components/layout/header";
 // RetroUI components
 import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
@@ -28,7 +27,7 @@ export default function DashboardContent({ user }: DashboardContentProps = {}) {
   };
 
   const handleNavigateToProjects = () => {
-    router.push("/dashboard/project");
+    router.push("/dashboard/projects");
   };
 
   return (

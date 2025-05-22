@@ -98,10 +98,69 @@ export const projectsApi = {
 
   // * Delete a project
   async deleteProject(id: string): Promise<void> {
-    const { error } = await supabase.from("projects").delete().eq("id", id);
+    try {
+      console.log("API: Deleting project with ID:", id);
 
-    if (error) {
-      throw new Error(`Failed to delete project: ${error.message}`);
+      // delete all related project_members
+      const { error: membersError } = await supabase
+        .from("project_members")
+        .delete()
+        .eq("project_id", id);
+
+      if (membersError) {
+        console.error(
+          `Failed to delete project members: ${membersError.message}`
+        );
+      }
+
+      // get all design files related to this project
+      const { data: designFiles, error: filesQueryError } = await supabase
+        .from("design_files")
+        .select("id")
+        .eq("project_id", id);
+
+      if (filesQueryError) {
+        console.error(
+          `Failed to query design files: ${filesQueryError.message}`
+        );
+      } else if (designFiles && designFiles.length > 0) {
+        // If there are design files, delete all comments related to those files
+        const fileIds = designFiles.map((file) => file.id);
+
+        // Delete comments related to the design files
+        const { error: commentsError } = await supabase
+          .from("comments")
+          .delete()
+          .in("design_file_id", fileIds);
+
+        if (commentsError) {
+          console.error(
+            `Failed to delete file comments: ${commentsError.message}`
+          );
+        }
+
+        // Delete the design files themselves
+        const { error: filesDeleteError } = await supabase
+          .from("design_files")
+          .delete()
+          .eq("project_id", id);
+
+        if (filesDeleteError) {
+          console.error(
+            `Failed to delete design files: ${filesDeleteError.message}`
+          );
+        }
+      }
+
+      // delete the project itself
+      const { error } = await supabase.from("projects").delete().eq("id", id);
+
+      if (error) {
+        throw new Error(`Failed to delete project: ${error.message}`);
+      }
+    } catch (error) {
+      console.error("Error in deleteProject:", error);
+      throw error;
     }
   },
 };

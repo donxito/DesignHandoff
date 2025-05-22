@@ -6,7 +6,7 @@ import {
   UseMutationResult,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { commentsApi } from "@/lib/api/comments";
+import { commentsApi } from "@/app/api/comments";
 import { Comment, CreateCommentData } from "@/lib/types/comment";
 
 // * Query key factory

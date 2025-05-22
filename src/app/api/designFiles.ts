@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
 import { DesignFile, UploadFileParams } from "@/lib/types/designFile";
-import { User } from "@/lib/types/user";
 
 export const designFilesApi = {
   // * Fetches design files for a specific project
@@ -10,7 +9,6 @@ export const designFilesApi = {
       .select(
         `
         *,
-        profiles:uploaded_by(id, full_name, avatar_url),
         comments(count)
       `
       )
@@ -22,21 +20,14 @@ export const designFilesApi = {
     }
 
     return (data || []).map((file) => {
-      // Check if file.profiles is a valid User-like object by ensuring all selected fields are present.
-      // This helps differentiate from a Supabase error object which wouldn't have these specific fields.
-      const uploaderProfile =
-        file.profiles &&
-        typeof file.profiles === "object" &&
-        "id" in file.profiles &&
-        "full_name" in file.profiles && // Check for presence of selected fields
-        "avatar_url" in file.profiles // Check for presence of selected fields
-          ? file.profiles
-          : undefined;
-
       return {
         ...file,
-        uploader: uploaderProfile as User | undefined,
+        uploader: undefined,
         comments_count: file.comments?.[0]?.count || 0,
+        file_name: file.name,
+        file_type: file.name.split(".").pop()?.toLowerCase() || "",
+        file_url: file.file_url,
+        file_size: 0,
       };
     });
   },
@@ -48,7 +39,6 @@ export const designFilesApi = {
       .select(
         `
         *,
-        profiles:uploaded_by(id, full_name, avatar_url),
         comments(count)
       `
       )
@@ -59,20 +49,14 @@ export const designFilesApi = {
       throw new Error(`Failed to fetch design file: ${error.message}`);
     }
 
-    // check for data.profiles.
-    const uploaderProfile =
-      data.profiles &&
-      typeof data.profiles === "object" &&
-      "id" in data.profiles &&
-      "full_name" in data.profiles &&
-      "avatar_url" in data.profiles
-        ? data.profiles
-        : undefined;
-
     return {
       ...data,
-      uploader: uploaderProfile as User | undefined,
+      uploader: undefined,
       comments_count: data.comments?.[0]?.count || 0,
+      file_name: data.name,
+      file_type: data.name.split(".").pop()?.toLowerCase() || "",
+      file_url: data.file_url,
+      file_size: 0,
     };
   },
 
@@ -80,6 +64,8 @@ export const designFilesApi = {
   async uploadDesignFile({
     projectId,
     file,
+    fileName,
+    fileType,
     name,
   }: UploadFileParams): Promise<DesignFile> {
     try {
@@ -136,7 +122,13 @@ export const designFilesApi = {
         throw error;
       }
 
-      return data;
+      return {
+        ...data,
+        file_name: data.name,
+        file_type: fileType || file.type,
+        file_url: data.file_url,
+        file_size: file.size,
+      };
     } catch (error) {
       console.error("Upload error:", error);
       throw new Error(
@@ -145,12 +137,41 @@ export const designFilesApi = {
     }
   },
 
-  // * Deletes a design file
-  async deleteDesignFile(id: string): Promise<void> {
-    const { error } = await supabase.from("design_files").delete().eq("id", id);
+  //* Deletes a design file from Supabase storage and database.
+  async deleteDesignFile(id: string, fileUrl: string): Promise<void> {
+    // Extract storage path from fileUrl (assuming public URL format)
+    try {
+      // Example: https://<project>.supabase.co/storage/v1/object/public/design-files/PROJECT_ID/filename.ext
+      const pathMatch = fileUrl.match(/\/design-files\/(.+)$/);
+      if (!pathMatch || !pathMatch[1]) {
+        throw new Error("Could not extract storage path from file URL.");
+      }
+      const storagePath = pathMatch[1];
 
-    if (error) {
-      throw new Error(`Failed to delete design file: ${error.message}`);
+      // Delete from storage bucket
+      const { error: storageError } = await supabase.storage
+        .from("design-files")
+        .remove([storagePath]);
+      if (storageError) {
+        throw new Error(
+          `Failed to delete file from storage: ${storageError.message}`
+        );
+      }
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from("design_files")
+        .delete()
+        .eq("id", id);
+      if (dbError) {
+        throw new Error(
+          `Failed to delete design file from database: ${dbError.message}`
+        );
+      }
+    } catch (err) {
+      throw new Error(
+        `Failed to fully delete design file: ${(err as Error).message}`
+      );
     }
   },
 };

@@ -1,14 +1,22 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
-import { Badge } from "@/components/retroui/Badge";
 import { useProjects } from "@/hooks/use-project-query";
+import { ProjectCard } from "@/components/projects/project-card";
+import { EditProjectModal } from "@/components/projects/edit-project-modal";
+import { Project } from "@/lib/types/project";
 
 export default function ProjectList() {
   const { data: projects, isLoading, error, refetch } = useProjects();
+  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
+
+  // * Handle edit project
+  const handleEditProject = (project: Project) => {
+    setProjectToEdit(project);
+  };
 
   // * Show loading skeleton
   if (isLoading) {
@@ -48,10 +56,10 @@ export default function ProjectList() {
   if (!projects || projects.length === 0) {
     return (
       <Card className="p-6 text-center border-dashed">
-        <Text as="h3" className="text-xl font-semibold mb-2">
+        <Text as="h3" className="text-xl font-semibold mb-2 font-pixel">
           No Projects Yet
         </Text>
-        <Text as="p" className="mb-6">
+        <Text as="p" className="mb-6 font-pixel">
           Create your first project to get started.
         </Text>
         <Button
@@ -70,39 +78,25 @@ export default function ProjectList() {
   }
 
   return (
-    <div className="space-y-6">
-      {projects.map((project) => (
-        <Card
-          key={project.id}
-          className="p-5 hover:shadow-lg transition-shadow"
-        >
-          <div className="flex justify-between items-start">
-            <div>
-              <Text as="h3" className="text-xl font-bold mb-2">
-                {project.name}
-              </Text>
-              <Text as="p" className="text-gray-600 dark:text-gray-300 mb-4">
-                {project.description || "No description provided"}
-              </Text>
+    <>
+      <div className="space-y-6">
+        {projects.map((project) => (
+          <ProjectCard
+            key={project.id}
+            project={project}
+            onEdit={handleEditProject}
+          />
+        ))}
+      </div>
 
-              <div className="flex gap-2">
-                <Badge variant="primary" size="sm">
-                  Files: {project.files_count || 0}
-                </Badge>
-                <Badge variant="secondary" size="sm">
-                  Members: {project.members_count || 1}
-                </Badge>
-              </div>
-            </div>
-
-            <Link href={`/dashboard/project/${project.id}`}>
-              <Button variant="outline" size="sm">
-                View Project
-              </Button>
-            </Link>
-          </div>
-        </Card>
-      ))}
-    </div>
+      {/* Edit Project Modal */}
+      {projectToEdit && (
+        <EditProjectModal
+          project={projectToEdit}
+          isOpen={!!projectToEdit}
+          onClose={() => setProjectToEdit(null)}
+        />
+      )}
+    </>
   );
 }

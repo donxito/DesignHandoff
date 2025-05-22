@@ -5,7 +5,7 @@ import {
   UseMutationResult,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { projectsApi } from "@/lib/api/projects";
+import { projectsApi } from "@/app/api/projects";
 import {
   Project,
   CreateProjectData,
@@ -97,23 +97,28 @@ export function useDeleteProject(): UseMutationResult<void, Error, string> {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => projectsApi.deleteProject(id),
-    onSuccess: (_, deletedId) => {
+    mutationFn: async (id: string) => {
+      // Just use the projects API to delete the project
+      await projectsApi.deleteProject(id);
+    },
+    onSuccess: (_, deletedId: string) => {
       // Invalidate and refetch all projects
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
 
-      // Optimistically update the cache
+      // Remove the project from the cache
+      queryClient.removeQueries({ queryKey: projectKeys.details(deletedId) });
+
+      // Update the project list as well
       queryClient.setQueryData(
         projectKeys.all,
         (oldData: Project[] | undefined) => {
           if (!oldData) return [];
-
           return oldData.filter((project) => project.id !== deletedId);
         }
       );
-
-      // remove the project from the details cache
-      queryClient.removeQueries({ queryKey: projectKeys.details(deletedId) });
+    },
+    onError: (error: Error) => {
+      console.error("Error deleting project:", error);
     },
   });
 }
