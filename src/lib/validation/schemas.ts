@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PROJECT_STATUS } from "@/lib/types/project";
 
 // * Schema for project creation and updates
 export const projectSchema = z.object({
@@ -11,6 +12,7 @@ export const projectSchema = z.object({
     .max(500, "Description cannot be longer than 500 characters")
     .nullable()
     .optional(),
+  status: z.enum([...PROJECT_STATUS] as const).optional(),
 });
 
 // * Type for project form data

@@ -28,6 +28,7 @@ export default function ProjectsPage() {
     search: searchParams.get("search") || "",
     dateFrom: searchParams.get("dateFrom") || "",
     dateTo: searchParams.get("dateTo") || "",
+    status: (searchParams.get("status") as any) || "",
   });
 
   const [sortField, setSortField] = useState<ProjectSortField>(
@@ -114,12 +115,22 @@ export default function ProjectsPage() {
       search: "",
       dateFrom: "",
       dateTo: "",
+      status: undefined,
     });
     setSortField("created_at");
     setSortOrder("desc");
   };
 
-  // * Calculate project stats
+  // * Calculate project stats by status
+  const activeProjects =
+    projects?.filter((p) => p.status === "active" || !p.status).length || 0;
+  const archivedProjects =
+    projects?.filter((p) => p.status === "archived").length || 0;
+  const onHoldProjects =
+    projects?.filter((p) => p.status === "on_hold").length || 0;
+  const completedProjects =
+    projects?.filter((p) => p.status === "completed").length || 0;
+
   const recentProjects =
     projects?.filter((p) =>
       p.created_at
@@ -133,19 +144,19 @@ export default function ProjectsPage() {
   return (
     <DashboardLayout title="Projects">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card className="p-5 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]">
           <Text
             as="h3"
             className="text-lg font-bold font-pixel text-black dark:text-white mb-1"
           >
-            Total Projects
+            Active Projects
           </Text>
           <Text
             as="p"
-            className="text-3xl font-bold font-pixel text-black dark:text-white"
+            className="text-3xl font-bold font-pixel text-green-600 dark:text-green-400"
           >
-            {totalProjects}
+            {activeProjects}
           </Text>
         </Card>
 
@@ -154,13 +165,13 @@ export default function ProjectsPage() {
             as="h3"
             className="text-lg font-bold font-pixel text-black dark:text-white mb-1"
           >
-            Recent Projects
+            On Hold
           </Text>
           <Text
             as="p"
-            className="text-3xl font-bold font-pixel text-black dark:text-white"
+            className="text-3xl font-bold font-pixel text-yellow-600 dark:text-yellow-400"
           >
-            {recentProjects}
+            {onHoldProjects}
           </Text>
         </Card>
 
@@ -169,7 +180,22 @@ export default function ProjectsPage() {
             as="h3"
             className="text-lg font-bold font-pixel text-black dark:text-white mb-1"
           >
-            Total Design Files
+            Completed
+          </Text>
+          <Text
+            as="p"
+            className="text-3xl font-bold font-pixel text-blue-600 dark:text-blue-400"
+          >
+            {completedProjects}
+          </Text>
+        </Card>
+
+        <Card className="p-5 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]">
+          <Text
+            as="h3"
+            className="text-lg font-bold font-pixel text-black dark:text-white mb-1"
+          >
+            Total Files
           </Text>
           <Text
             as="p"

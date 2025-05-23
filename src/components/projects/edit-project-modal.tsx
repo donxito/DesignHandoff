@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Project } from "@/lib/types/project";
+import { Project, ProjectStatus } from "@/lib/types/project";
 import { useUpdateProject } from "@/hooks/use-project-query";
 import { useToast } from "@/hooks/use-toast";
 import { projectSchema, type ProjectFormData } from "@/lib/validation/schemas";
@@ -19,6 +19,7 @@ import { Textarea } from "@/components/retroui/Textarea";
 import { Label } from "@/components/retroui/Label";
 import { Alert } from "@/components/retroui/Alert";
 import { Text } from "@/components/retroui/Text";
+import { getStatusOptions } from "@/components/projects/project-status-badge";
 
 type EditProjectModalProps = {
   project: Project;
@@ -33,6 +34,7 @@ export function EditProjectModal({
 }: EditProjectModalProps) {
   const updateProjectMutation = useUpdateProject(project.id);
   const { toast } = useToast();
+  const statusOptions = getStatusOptions();
 
   // * React Hook Form with Zod validation
   const {
@@ -46,6 +48,7 @@ export function EditProjectModal({
     defaultValues: {
       name: project.name,
       description: project.description || "",
+      status: (project.status || "active") as ProjectStatus,
     },
   });
 
@@ -55,6 +58,7 @@ export function EditProjectModal({
       reset({
         name: project.name,
         description: project.description || "",
+        status: (project.status || "active") as ProjectStatus,
       });
     }
   }, [project, reset]);
@@ -65,6 +69,7 @@ export function EditProjectModal({
       await updateProjectMutation.mutateAsync({
         name: data.name,
         description: data.description || null,
+        status: data.status as ProjectStatus | undefined,
       });
 
       // Show success toast
@@ -133,6 +138,26 @@ export function EditProjectModal({
             {errors.description?.message && (
               <Text as="p" size="sm" variant="danger" className="mt-1">
                 {errors.description.message}
+              </Text>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Project Status</Label>
+            <select
+              id="status"
+              {...register("status")}
+              className="w-full px-4 py-2.5 rounded-md bg-white dark:bg-gray-800 border-3 transition-all duration-200 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.5)] focus:translate-x-[2px] focus:translate-y-[2px] focus:outline-none text-black dark:text-white"
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.status?.message && (
+              <Text as="p" size="sm" variant="danger" className="mt-1">
+                {errors.status.message}
               </Text>
             )}
           </div>

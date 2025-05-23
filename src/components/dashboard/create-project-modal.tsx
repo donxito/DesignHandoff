@@ -18,6 +18,7 @@ import { Textarea } from "@/components/retroui/Textarea";
 import { Label } from "@/components/retroui/Label";
 import { Alert } from "@/components/retroui/Alert";
 import { Text } from "@/components/retroui/Text";
+import { getStatusOptions } from "../projects/project-status-badge";
 
 type CreateProjectModalProps = {
   isOpen: boolean;
@@ -35,7 +36,10 @@ export function CreateProjectModal({
   // * Create Project Mutation
   const createProjectMutation = useCreateProject();
 
-  // React Hook Form with Zod validation
+  // * Status Options
+  const statusOptions = getStatusOptions();
+
+  // * React Hook Form with Zod validation
   const {
     register,
     handleSubmit,
@@ -47,6 +51,7 @@ export function CreateProjectModal({
     defaultValues: {
       name: "",
       description: "",
+      status: "active", // default
     },
   });
 
@@ -75,6 +80,7 @@ export function CreateProjectModal({
       await createProjectMutation.mutateAsync({
         name: data.name,
         description: data.description || null,
+        status: data.status || "active",
       });
 
       // Close modal and notify parent of success
@@ -122,6 +128,7 @@ export function CreateProjectModal({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="description">Description (Optional)</Label>
             <Textarea
               id="description"
               {...register("description")}
@@ -133,6 +140,26 @@ export function CreateProjectModal({
             {errors.description?.message && (
               <Text as="p" size="sm" variant="danger" className="mt-1">
                 {errors.description.message}
+              </Text>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Project Status</Label>
+            <select
+              id="status"
+              {...register("status")}
+              className="w-full px-4 py-2.5 rounded-md bg-white dark:bg-gray-800 border-3 transition-all duration-200 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)] focus:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.5)] focus:translate-x-[2px] focus:translate-y-[2px] focus:outline-none placeholder:text-gray-500 dark:placeholder:text-gray-400 dark:text-white"
+            >
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {errors.status?.message && (
+              <Text as="p" size="sm" variant="danger" className="mt-1">
+                {errors.status.message}
               </Text>
             )}
           </div>

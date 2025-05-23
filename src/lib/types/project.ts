@@ -24,11 +24,13 @@ export interface ProjectWithMembers extends Project {
 export interface CreateProjectData {
   name: string;
   description?: string | null;
+  status?: ProjectStatus;
 }
 
 export interface UpdateProjectData {
   name?: string;
   description?: string | null;
+  status?: ProjectStatus;
 }
 
 export type ProjectSortField =
@@ -40,7 +42,12 @@ export type ProjectSortField =
 
 export type ProjectSortOrder = "asc" | "desc";
 
-export type ProjectStatus = "active" | "archived" | "completed";
+export const PROJECT_STATUS = ["active", "on_hold", "archived", "completed"] as const;
+
+export type ProjectStatus = (typeof PROJECT_STATUS)[number];
+
+export const isProjectStatus = (status: string): status is ProjectStatus => 
+  (PROJECT_STATUS as readonly string[]).includes(status);
 
 export interface ProjectFilters {
   search?: string;

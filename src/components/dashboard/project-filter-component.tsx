@@ -12,6 +12,7 @@ import { Card } from "@/components/retroui/Card";
 import { Text } from "@/components/retroui/Text";
 import { Badge } from "@/components/retroui/Badge";
 import { ChevronDown, Filter, X, SortAsc, SortDesc } from "lucide-react";
+import { getStatusOptions } from "@/components/projects/project-status-badge";
 
 interface ProjectFilterProps {
   filters: ProjectFilters;
@@ -27,8 +28,6 @@ const sortOptions: { field: ProjectSortField; label: string }[] = [
   { field: "created_at", label: "Created Date" },
   { field: "updated_at", label: "Updated Date" },
   { field: "name", label: "Name" },
-  //   { field: "files_count", label: "Files Count" },
-  //   { field: "members_count", label: "Members Count" },
 ];
 
 export default function ProjectFiltersComponent({
@@ -42,6 +41,7 @@ export default function ProjectFiltersComponent({
 }: ProjectFilterProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [localFilters, setLocalFilters] = useState<ProjectFilters>(filters);
+  const statusOptions = getStatusOptions();
 
   // * update filters with debounced search
   const updateFilters = (newFilters: Partial<ProjectFilters>) => {
@@ -168,16 +168,26 @@ export default function ProjectFiltersComponent({
               />
             </div>
 
-            {/* Status Filter - Future Implementation */}
+            {/* Status Filter */}
             <div>
               <label className="block text-sm font-medium text-black dark:text-white mb-1">
-                Status (Coming Soon)
+                Status
               </label>
               <select
-                disabled
-                className="px-4 py-2.5 w-full bg-gray-100 dark:bg-gray-700 border-3 border-gray-300 dark:border-gray-600 rounded-md font-pixel text-gray-500 opacity-50"
+                value={localFilters.status || ""}
+                onChange={(e) =>
+                  updateFilters({
+                    status: (e.target.value as any) || undefined,
+                  })
+                }
+                className="px-4 py-2.5 w-full bg-white dark:bg-gray-800 border-3 border-black dark:border-white rounded-md font-pixel text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]"
               >
-                <option>All Statuses</option>
+                <option value="">All Statuses</option>
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

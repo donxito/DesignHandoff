@@ -33,6 +33,11 @@ export const projectsApi = {
       );
     }
 
+    // Apply status filter
+    if (filters.status) {
+      query = query.eq("status", filters.status);
+    }
+
     // Apply date filters
     if (filters.dateFrom) {
       query = query.gte("created_at", filters.dateFrom);
@@ -55,7 +60,7 @@ export const projectsApi = {
       throw new Error(`Failed to fetch projects: ${error.message}`);
     }
 
-    // transform the data to include count as properties
+    // include count as properties
     const projects = (data || []).map((project) => ({
       ...project,
       members_count: project.project_members?.[0]?.count || 0,
@@ -82,7 +87,7 @@ export const projectsApi = {
       throw new Error(`Failed to fetch project: ${error.message}`);
     }
 
-    // transform the data to include count as properties
+    // include count as properties
     return {
       ...data,
       members_count: data.project_members?.[0]?.count || 0,
@@ -108,6 +113,7 @@ export const projectsApi = {
         owner_id: userId,
         created_by: userId,
         description: projectData.description || null,
+        status: projectData.status || "active", // default
       })
       .select()
       .single();
@@ -124,12 +130,18 @@ export const projectsApi = {
     id: string,
     projectData: UpdateProjectData
   ): Promise<Project> {
+    const updateData: any = {};
+
+    // Only include fields that are provided
+    if (projectData.name !== undefined) updateData.name = projectData.name;
+    if (projectData.description !== undefined)
+      updateData.description = projectData.description;
+    if (projectData.status !== undefined)
+      updateData.status = projectData.status;
+
     const { data, error } = await supabase
       .from("projects")
-      .update({
-        name: projectData.name,
-        description: projectData.description,
-      })
+      .update(updateData)
       .eq("id", id)
       .select()
       .single();
