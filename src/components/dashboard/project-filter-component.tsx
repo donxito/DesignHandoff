@@ -5,6 +5,7 @@ import {
   ProjectFilters,
   ProjectSortField,
   ProjectSortOrder,
+  ProjectStatus,
 } from "@/lib/types/project";
 import { Button } from "@/components/retroui/Button";
 import { Input } from "@/components/retroui/Input";
@@ -177,7 +178,7 @@ export default function ProjectFiltersComponent({
                 value={localFilters.status || ""}
                 onChange={(e) =>
                   updateFilters({
-                    status: (e.target.value as any) || undefined,
+                    status: (e.target.value as ProjectStatus) || undefined,
                   })
                 }
                 className="px-4 py-2.5 w-full bg-white dark:bg-gray-800 border-3 border-black dark:border-white rounded-md font-pixel text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]"

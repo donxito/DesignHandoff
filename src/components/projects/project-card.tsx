@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { isProjectStatus, Project, ProjectStatus } from "@/lib/types/project";
+import { isProjectStatus, Project } from "@/lib/types/project";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { useDeleteProject, useUpdateProject } from "@/hooks/use-project-query";
+import { useDeleteProject } from "@/hooks/use-project-query";
 import { Card } from "@/components/retroui/Card";
 import { Text } from "@/components/retroui/Text";
 import { Badge } from "@/components/retroui/Badge";
@@ -27,29 +27,30 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteProjectMutation = useDeleteProject();
-  const updateProjectMutation = useUpdateProject(project.id);
+  //const updateProjectMutation = useUpdateProject(project.id);
   const { toast } = useToast();
 
   // * Handle quick status change
-  const handleStatusChange = async (newStatus: ProjectStatus) => {
-    try {
-      await updateProjectMutation.mutateAsync({
-        status: newStatus as ProjectStatus,
-      });
+  // const handleStatusChange = async (newStatus: ProjectStatus) => {
+  //   try {
+  //     await updateProjectMutation.mutateAsync({
+  //       status: newStatus as ProjectStatus,
+  //     });
 
-      toast({
-        message: "Status Updated",
-        description: `Project status changed to ${newStatus.replace("_", " ")}`,
-        variant: "success",
-      });
-    } catch (error) {
-      toast({
-        message: "Update Failed",
-        description: "Could not update project status",
-        variant: "error",
-      });
-    }
-  };
+  //     toast({
+  //       message: "Status Updated",
+  //       description: `Project status changed to ${newStatus.replace("_", " ")}`,
+  //       variant: "success",
+  //     });
+  //   } catch (error) {
+  //     console.error("Error updating project status:", error);
+  //     toast({
+  //       message: "Update Failed",
+  //       description: "Could not update project status",
+  //       variant: "error",
+  //     });
+  //   }
+  // };
 
   // * Format the date
   const formattedDate = project.created_at
@@ -57,12 +58,11 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
     : "";
 
   // * Handle delete confirmation
-  // Handle status change from dropdown
-  const handleStatusSelect = (value: string) => {
-    if (isProjectStatus(value)) {
-      handleStatusChange(value as ProjectStatus);
-    }
-  };
+  // const handleStatusSelect = (value: string) => {
+  //   if (isProjectStatus(value)) {
+  //     handleStatusChange(value as ProjectStatus);
+  //   }
+  // };
 
   const handleDeleteConfirm = async () => {
     setIsDeleting(true);

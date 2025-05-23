@@ -15,6 +15,7 @@ import {
   ProjectFilters,
   ProjectSortField,
   ProjectSortOrder,
+  ProjectStatus,
 } from "@/lib/types/project";
 
 export default function ProjectsPage() {
@@ -28,7 +29,7 @@ export default function ProjectsPage() {
     search: searchParams.get("search") || "",
     dateFrom: searchParams.get("dateFrom") || "",
     dateTo: searchParams.get("dateTo") || "",
-    status: (searchParams.get("status") as any) || "",
+    status: (searchParams.get("status") as ProjectStatus) || "",
   });
 
   const [sortField, setSortField] = useState<ProjectSortField>(
@@ -51,7 +52,7 @@ export default function ProjectsPage() {
   });
 
   const projects = projectsResponse?.projects || [];
-  const totalProjects = projectsResponse?.total || 0;
+  //const totalProjects = projectsResponse?.total || 0;
 
   // * Update URL when filters change
   useEffect(() => {
@@ -124,20 +125,21 @@ export default function ProjectsPage() {
   // * Calculate project stats by status
   const activeProjects =
     projects?.filter((p) => p.status === "active" || !p.status).length || 0;
-  const archivedProjects =
-    projects?.filter((p) => p.status === "archived").length || 0;
+  // const archivedProjects =
+  //   projects?.filter((p) => p.status === "archived").length || 0;
   const onHoldProjects =
     projects?.filter((p) => p.status === "on_hold").length || 0;
   const completedProjects =
     projects?.filter((p) => p.status === "completed").length || 0;
 
-  const recentProjects =
-    projects?.filter((p) =>
-      p.created_at
-        ? new Date(p.created_at).getTime() >
-          Date.now() - 7 * 24 * 60 * 60 * 1000
-        : false
-    ).length || 0;
+  // const recentProjects =
+  //   projects?.filter((p) =>
+  //     p.created_at
+  //       ? new Date(p.created_at).getTime() >
+  //         Date.now() - 7 * 24 * 60 * 60 * 1000
+  //       : false
+  //   ).length || 0;
+
   const totalFiles =
     projects?.reduce((sum, p) => sum + (p.files_count || 0), 0) || 0;
 

@@ -130,7 +130,7 @@ export const projectsApi = {
     id: string,
     projectData: UpdateProjectData
   ): Promise<Project> {
-    const updateData: any = {};
+    const updateData: Partial<UpdateProjectData> = {};
 
     // Only include fields that are provided
     if (projectData.name !== undefined) updateData.name = projectData.name;
