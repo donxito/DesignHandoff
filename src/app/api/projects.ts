@@ -3,26 +3,71 @@ import {
   CreateProjectData,
   Project,
   UpdateProjectData,
+  ProjectQueryParams,
+  ProjectsResponse,
 } from "@/lib/types/project";
 
 export const projectsApi = {
-  // * Get all projects for a user
-  async getProjects(): Promise<Project[]> {
-    const { data, error } = await supabase
+  // * Get all projects for a user with filtering and sorting
+  async getProjects(
+    params: ProjectQueryParams = {}
+  ): Promise<ProjectsResponse> {
+    const {
+      filters = {},
+      sortField = "created_at",
+      sortOrder = "desc",
+      page = 1,
+      limit = 20,
+    } = params;
+
+    let query = supabase
       .from("projects")
-      .select(`*, project_members(count), design_files(count)`)
-      .order("created_at", { ascending: false });
+      .select(`*, project_members(count), design_files(count)`, {
+        count: "exact",
+      });
+
+    // Apply search filter
+    if (filters.search) {
+      query = query.or(
+        `name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
+      );
+    }
+
+    // Apply date filters
+    if (filters.dateFrom) {
+      query = query.gte("created_at", filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      query = query.lte("created_at", filters.dateTo);
+    }
+
+    // Apply sorting
+    query = query.order(sortField, { ascending: sortOrder === "asc" });
+
+    // Apply pagination
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
 
     if (error) {
-      throw new Error(`Failded to fetch `);
+      throw new Error(`Failed to fetch projects: ${error.message}`);
     }
 
     // transform the data to include count as properties
-    return (data || []).map((project) => ({
+    const projects = (data || []).map((project) => ({
       ...project,
       members_count: project.project_members?.[0]?.count || 0,
       files_count: project.design_files?.[0]?.count || 0,
     }));
+
+    return {
+      projects,
+      total: count || 0,
+      page,
+      totalPages: Math.ceil((count || 0) / limit),
+    };
   },
 
   // * Get a single project by ID

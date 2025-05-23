@@ -10,19 +10,27 @@ import {
   Project,
   CreateProjectData,
   UpdateProjectData,
+  ProjectsResponse,
+  ProjectQueryParams,
 } from "@/lib/types/project";
 
 // * Query key factory for project queries
 const projectKeys = {
   all: ["projects"] as const,
+  lists: () => [...projectKeys.all, "lists"] as const,
+  list: (params: ProjectQueryParams) =>
+    [...projectKeys.lists(), params] as const,
   details: (id: string) => [...projectKeys.all, id] as const,
 };
 
-// * Hook for fecthing all projects
-export function useProjects(): UseQueryResult<Project[], Error> {
+// * Hook for fetching all projects with filtering and sorting
+export function useProjects(
+  params: ProjectQueryParams = {}
+): UseQueryResult<ProjectsResponse, Error> {
   return useQuery({
-    queryKey: projectKeys.all, // Query key
-    queryFn: () => projectsApi.getProjects(), // return a function
+    queryKey: projectKeys.list(params), // Include params in query key for proper caching
+    queryFn: () => projectsApi.getProjects(params), // Pass params to API
+    staleTime: 30 * 1000, // 30 seconds
   });
 }
 
