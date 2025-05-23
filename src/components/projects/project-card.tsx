@@ -34,7 +34,7 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const handleStatusChange = async (newStatus: ProjectStatus) => {
     try {
       await updateProjectMutation.mutateAsync({
-        status: newStatus,
+        status: newStatus as ProjectStatus,
       });
 
       toast({
@@ -57,6 +57,13 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
     : "";
 
   // * Handle delete confirmation
+  // Handle status change from dropdown
+  const handleStatusSelect = (value: string) => {
+    if (isProjectStatus(value)) {
+      handleStatusChange(value as ProjectStatus);
+    }
+  };
+
   const handleDeleteConfirm = async () => {
     setIsDeleting(true);
 

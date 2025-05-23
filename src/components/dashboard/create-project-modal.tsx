@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCreateProject } from "@/hooks/use-project-query";
 import { projectSchema, type ProjectFormData } from "@/lib/validation/schemas";
+import { ProjectStatus } from "@/lib/types/project";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -51,7 +52,7 @@ export function CreateProjectModal({
     defaultValues: {
       name: "",
       description: "",
-      status: "active", // default
+      status: "active" as ProjectStatus,
     },
   });
 
@@ -80,7 +81,7 @@ export function CreateProjectModal({
       await createProjectMutation.mutateAsync({
         name: data.name,
         description: data.description || null,
-        status: data.status || "active",
+        status: (data.status || "active") as ProjectStatus,
       });
 
       // Close modal and notify parent of success
