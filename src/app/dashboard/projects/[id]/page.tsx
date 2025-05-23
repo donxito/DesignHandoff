@@ -7,15 +7,33 @@ import { useToast } from "@/hooks/use-toast";
 import { Text } from "@/components/retroui/Text";
 import { Button } from "@/components/retroui/Button";
 import { Card } from "@/components/retroui/Card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/retroui/Tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/retroui/Tabs";
 import { Badge } from "@/components/retroui/Badge";
 import { EditProjectModal } from "@/components/projects/edit-project-modal";
-import { ProjectFileUploader } from "@/components/projects/project-file-uploader";
-import { ProjectFilesList } from "@/components/projects/project-files-list";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { formatDistanceToNow } from "date-fns";
-import { Users, FileImage, Calendar, ArrowLeft, Pencil } from "lucide-react";
+import {
+  Users,
+  FileImage,
+  Calendar,
+  ArrowLeft,
+  Pencil,
+  MessageSquare,
+} from "lucide-react";
 import Link from "next/link";
+// modular section components
+import {
+  ProjectOverviewSection,
+  ProjectFilesSection,
+  ProjectUploadSection,
+  ProjectTeamSection,
+  ProjectCommentsSection,
+} from "@/components/projects/sections";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
@@ -32,10 +50,16 @@ export default function ProjectDetailPage() {
       description: "Your design file has been uploaded successfully",
       variant: "success",
     });
-    
+
     // Switch to the files tab to show the newly uploaded file
     setActiveTab("files");
   };
+
+  // * Handle tab switching from overview quick actions
+  const handleSwitchToFiles = () => setActiveTab("files");
+  const handleSwitchToUpload = () => setActiveTab("upload");
+  const handleSwitchToTeam = () => setActiveTab("team");
+  //const handleSwitchToComments = () => setActiveTab("comments");
 
   // * Loading state
   if (isLoading) {
@@ -82,7 +106,11 @@ export default function ProjectDetailPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="flex items-center gap-2">
             <Link href="/dashboard/projects">
-              <Button variant="outline" size="sm" className="mr-2 border-0 hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Button
+                variant="outline"
+                size="sm"
+                className="mr-2 border-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
@@ -137,6 +165,13 @@ export default function ProjectDetailPage() {
               {project.members_count || 1} Team Members
             </Text>
           </Card>
+
+          <Card className="p-3 flex items-center gap-2 border-3 border-black dark:border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.5)]">
+            <MessageSquare className="h-5 w-5 text-gray-500" />
+            <Text as="span" className="font-pixel text-black dark:text-white">
+              Comments & Feedback
+            </Text>
+          </Card>
         </div>
       </div>
 
@@ -159,118 +194,35 @@ export default function ProjectDetailPage() {
           </TabsTrigger>
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
+          <TabsTrigger value="comments">Comments</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <Card className="p-6 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]">
-            <Text
-              as="h3"
-              className="text-xl font-bold font-pixel mb-4 text-black dark:text-white"
-            >
-              Project Overview
-            </Text>
-            <Text
-              as="p"
-              className="mb-4 font-pixel text-black dark:text-white"
-            >
-              This is where you can see an overview of your project, including
-              recent activity, design files, and team members.
-            </Text>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <div>
-                <Text
-                  as="h4"
-                  className="text-lg font-bold font-pixel mb-3 text-black dark:text-white"
-                >
-                  Recent Files
-                </Text>
-                {project.files_count ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => setActiveTab("files")}
-                  >
-                    View All Files
-                  </Button>
-                ) : (
-                  <Card className="p-4 border-dashed text-center">
-                    <Text
-                      as="p"
-                      className="font-pixel text-black dark:text-white mb-3"
-                    >
-                      No design files yet
-                    </Text>
-                    <Button
-                      variant="outline"
-                      onClick={() => setActiveTab("upload")}
-                    >
-                      Upload First File
-                    </Button>
-                  </Card>
-                )}
-              </div>
-
-              <div>
-                <Text
-                  as="h4"
-                  className="text-lg font-bold font-pixel mb-3 text-black dark:text-white"
-                >
-                  Team Members
-                </Text>
-                <Card className="p-4 border-dashed text-center">
-                  <Text
-                    as="p"
-                    className="font-pixel text-black dark:text-white mb-3"
-                  >
-                    You are the only member
-                  </Text>
-                  <Button variant="outline" onClick={() => setActiveTab("team")}>
-                    Invite Team Members
-                  </Button>
-                </Card>
-              </div>
-            </div>
-          </Card>
+          <ProjectOverviewSection
+            project={project}
+            onSwitchToFiles={handleSwitchToFiles}
+            onSwitchToUpload={handleSwitchToUpload}
+            onSwitchToTeam={handleSwitchToTeam}
+          />
         </TabsContent>
 
         <TabsContent value="files" className="space-y-6">
-          <ProjectFilesList projectId={projectId} />
+          <ProjectFilesSection projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="upload" className="space-y-6">
-          <ProjectFileUploader
+          <ProjectUploadSection
             projectId={projectId}
             onUploadComplete={handleFileUploadComplete}
           />
         </TabsContent>
 
         <TabsContent value="team" className="space-y-6">
-          <Card className="p-6 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]">
-            <Text
-              as="h3"
-              className="text-xl font-bold font-pixel mb-4 text-black dark:text-white"
-            >
-              Team Members
-            </Text>
-            <Text
-              as="p"
-              className="mb-6 font-pixel text-black dark:text-white"
-            >
-              Invite team members to collaborate on this project.
-            </Text>
+          <ProjectTeamSection project={project} />
+        </TabsContent>
 
-            <Card className="p-4 border-dashed text-center">
-              <Text
-                as="p"
-                className="font-pixel text-black dark:text-white mb-3"
-              >
-                Team member management will be implemented in a future update.
-              </Text>
-              <Button variant="outline" disabled>
-                Invite Team Members
-              </Button>
-            </Card>
-          </Card>
+        <TabsContent value="comments" className="space-y-6">
+          <ProjectCommentsSection project={project} />
         </TabsContent>
       </Tabs>
 
