@@ -74,3 +74,48 @@ export const commentSchema = z.object({
 
 // * Type for comment form data
 export type CommentFormData = z.infer<typeof commentSchema>;
+
+// * Password change schema
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z
+      .string()
+      .min(6, "New password must be at least 6 characters")
+      .max(72, "Password cannot be longer than 72 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "New password must be different from current password",
+    path: ["newPassword"],
+  });
+
+export type PasswordChangeFormData = z.infer<typeof passwordChangeSchema>;
+
+// * email change schema
+export const emailChangeSchema = z.object({
+  newEmail: z
+    .string()
+    .email("Please enter a valid email address")
+    .min(1, "Email is required"),
+  password: z.string().min(1, "Password is required to change email"),
+});
+
+export type EmailChangeFormData = z.infer<typeof emailChangeSchema>;
+
+// * delete account schema
+export const accountDeletionSchema = z.object({
+  confirmationText: z
+    .string()
+    .refine(
+      (text) => text === "DELETE MY ACCOUNT",
+      "Please type 'DELETE MY ACCOUNT' to confirm"
+    ),
+  password: z.string().min(1, "Password is required to delete account"),
+});
+
+export type AccountDeletionFormData = z.infer<typeof accountDeletionSchema>;

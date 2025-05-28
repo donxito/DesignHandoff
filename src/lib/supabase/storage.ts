@@ -1,8 +1,6 @@
-import { supabase } from './client';
+import { supabase } from "./client";
 
-/**
- * Storage utility functions for Supabase
- */
+// * Storage utility functions for Supabase
 
 /**
  * Gets a public URL for a file in a bucket
@@ -22,17 +20,19 @@ export const getPublicUrl = (bucket: string, filePath: string) => {
  * @param file The file to upload
  * @returns Promise with the upload result
  */
-export const uploadFile = async (bucket: string, filePath: string, file: File) => {
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: true
-    });
-    
+export const uploadFile = async (
+  bucket: string,
+  filePath: string,
+  file: File
+) => {
+  const { error } = await supabase.storage.from(bucket).upload(filePath, file, {
+    cacheControl: "3600",
+    upsert: true,
+  });
+
   if (error) {
     throw error;
   }
-    
+
   return getPublicUrl(bucket, filePath);
 };

@@ -1,26 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ThemeToggle from "./theme-toggle";
+import UserDropdown from "./user-dropdown";
 import { useAuthStore } from "@/lib/store";
 // RetroUI components
 import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
-import { Avatar } from "@/components/retroui/Avatar";
 
 export default function Header() {
-  const { user, logout, isAuthenticated } = useAuthStore();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await logout();
-    router.push("/auth/login");
-  };
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b-3 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)] relative z-10">
-      {/* Decorative accent bar */}
+      {/* Decorative  bar */}
       <div className="h-1.5 bg-gradient-to-r from-yellow-400 via-pink-500 to-blue-500"></div>
 
       <div className="container mx-auto px-4">
@@ -39,12 +32,12 @@ export default function Header() {
             </Link>
           </div>
 
-          <nav className="flex items-center space-x-6">
+          <nav className="flex items-center space-x-4">
             <ThemeToggle />
 
             {isAuthenticated ? (
               <>
-                <div className="hidden md:flex items-center space-x-4">
+                <div className="hidden md:flex items-center space-x-3">
                   <Link href="/dashboard" className="no-underline">
                     <Button
                       variant="secondary"
@@ -54,23 +47,8 @@ export default function Header() {
                       Dashboard
                     </Button>
                   </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="font-medium"
-                  >
-                    Logout
-                  </Button>
                 </div>
-                <Avatar
-                  variant="primary"
-                  className="cursor-pointer transition-all hover:scale-105"
-                >
-                  <div className="flex items-center justify-center w-full h-full bg-pink-200 text-black font-bold">
-                    {user?.email ? user.email.charAt(0).toUpperCase() : "?"}
-                  </div>
-                </Avatar>
+                <UserDropdown />
               </>
             ) : (
               <>

@@ -511,6 +511,7 @@ export function ProjectFilesList({ projectId }: ProjectFilesListProps) {
                   src={`${selectedFile.file_url}#toolbar=0`}
                   className="w-full h-full"
                   title={selectedFile.file_name}
+                  sandbox="allow-same-origin allow-scripts"
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">

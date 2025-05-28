@@ -77,3 +77,51 @@ export const updatePassword = async (newPassword: string) => {
   });
   return { data, error };
 };
+
+// update email with verification
+export const updateEmail = async (newEmail: string) => {
+  const { data, error } = await supabase.auth.updateUser({
+    email: newEmail,
+  });
+  return { data, error };
+};
+
+// change password with current password verification
+export const changePassword = async (
+  currentPassword: string,
+  newPassword: string
+) => {
+  // verify current password by attempting to sign in
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user?.email) {
+    return { error: new Error("User not found") };
+  }
+
+  // verify current password
+  const { error: verifyError } = await supabase.auth.signInWithPassword({
+    email: sessionData.session.user.email,
+    password: currentPassword,
+  });
+
+  if (verifyError) {
+    return { error: { message: "Invalid current password" } };
+  }
+
+  // update to new password
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  return { data, error };
+};
+
+// delete user account
+export const deleteAccount = async () => {
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user?.email) {
+    return { error: new Error("User not found") };
+  }
+
+  const { error } = await supabase.rpc("delete_user_account");
+  return { error };
+};
