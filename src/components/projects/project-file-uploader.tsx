@@ -3,11 +3,13 @@
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUploadDesignFile } from "@/hooks/use-design-files-query";
+import { useFileCategories } from "@/hooks/use-file-categories-query";
 import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
 import { Progress } from "@/components/retroui/Progress";
-import { Upload, X, FileImage, Check } from "lucide-react";
+import { Badge } from "@/components/retroui/Badge";
+import { Upload, X, FileImage, Check, FolderPlus } from "lucide-react";
 
 interface ProjectFileUploaderProps {
   projectId: string;
@@ -20,13 +22,15 @@ export function ProjectFileUploader({
 }: ProjectFileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const uploadFileMutation = useUploadDesignFile();
+  const { data: categories = [] } = useFileCategories(projectId);
 
-  // * Handle drag events
+  // Handle drag events
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -44,7 +48,7 @@ export function ProjectFileUploader({
     e.stopPropagation();
   };
 
-  // * Handle file selection
+  // Handle file selection
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -63,9 +67,9 @@ export function ProjectFileUploader({
     }
   };
 
-  // * Validate file type and size
+  // Validate file type and size
   const validateAndSetFile = (file: File) => {
-    // Check file type (allow images, PDFs, Sketch, Figma, etc.)
+    // Check file type
     const allowedTypes = [
       "image/jpeg",
       "image/png",
@@ -73,8 +77,8 @@ export function ProjectFileUploader({
       "image/svg+xml",
       "application/pdf",
       "application/zip",
-      "application/vnd.sketch", // Sketch files
-      "application/figma", // Figma files
+      "application/vnd.sketch",
+      "application/figma",
     ];
 
     if (
@@ -102,9 +106,13 @@ export function ProjectFileUploader({
     }
 
     setSelectedFile(file);
+    // Auto-select first category if available
+    if (categories.length > 0 && !selectedCategoryId) {
+      setSelectedCategoryId(categories[0].id);
+    }
   };
 
-  // * Handle file upload
+  // Handle file upload
   const handleUpload = async () => {
     if (!selectedFile || !projectId) return;
 
@@ -121,27 +129,40 @@ export function ProjectFileUploader({
       }, 300);
 
       // Upload the file
-      await uploadFileMutation.mutateAsync({
+      const result = await uploadFileMutation.mutateAsync({
         file: selectedFile,
         projectId,
         fileName: selectedFile.name,
         fileType: selectedFile.type,
       });
 
+      // If category is selected, assign it to the file
+      if (selectedCategoryId && result.id) {
+        const { fileCategoriesApi } = await import("@/app/api/fileCategories");
+        await fileCategoriesApi.assignFileToCategory(
+          result.id,
+          selectedCategoryId
+        );
+      }
+
       // Complete the progress bar
       clearInterval(progressInterval);
       setUploadProgress(100);
 
       // Show success message
+      const categoryName = categories.find(
+        (c) => c.id === selectedCategoryId
+      )?.name;
       toast({
         message: "File uploaded successfully",
-        description: `${selectedFile.name} has been uploaded to the project`,
+        description: `${selectedFile.name} has been uploaded${categoryName ? ` to "${categoryName}"` : ""}`,
         variant: "success",
       });
 
       // Reset state and notify parent
       setTimeout(() => {
         setSelectedFile(null);
+        setSelectedCategoryId("");
         setUploadProgress(0);
         setIsUploading(false);
         onUploadComplete?.();
@@ -158,9 +179,10 @@ export function ProjectFileUploader({
     }
   };
 
-  // * Handle file removal
+  // Handle file removal
   const handleRemoveFile = () => {
     setSelectedFile(null);
+    setSelectedCategoryId("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -219,6 +241,7 @@ export function ProjectFileUploader({
         </div>
       ) : (
         <div className="space-y-4">
+          {/* File Info */}
           <div className="flex items-center justify-between p-4 border-3 rounded-lg border-gray-300 dark:border-gray-700">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
@@ -251,6 +274,45 @@ export function ProjectFileUploader({
             )}
           </div>
 
+          {/* Category Selection */}
+          {categories.length > 0 && (
+            <div className="space-y-2">
+              <Text className="block text-sm font-medium text-black dark:text-white">
+                <FolderPlus className="h-4 w-4 inline mr-1" />
+                Category (Optional)
+              </Text>
+              <select
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border-3 border-black dark:border-white rounded-md font-pixel text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]"
+                disabled={isUploading}
+              >
+                <option value="">No Category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              {selectedCategoryId && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div
+                    className="w-3 h-3 rounded-full border border-black dark:border-white"
+                    style={{
+                      backgroundColor:
+                        categories.find((c) => c.id === selectedCategoryId)
+                          ?.color ?? undefined,
+                    }}
+                  />
+                  <Badge variant="secondary" size="sm">
+                    {categories.find((c) => c.id === selectedCategoryId)?.name}
+                  </Badge>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Upload Progress */}
           {isUploading ? (
             <div className="space-y-2">
               <div className="flex justify-between items-center">

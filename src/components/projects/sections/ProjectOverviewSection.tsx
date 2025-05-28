@@ -83,6 +83,7 @@ export function ProjectOverviewSection({
                             }
                           );
                         } catch (error) {
+                          console.error("Error formatting date:", error);
                           return "Invalid date";
                         }
                       })()
