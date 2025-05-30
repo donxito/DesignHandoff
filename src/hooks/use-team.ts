@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ApiClient, handleApiResponse } from "@/lib/utils/api-client";
 
 // Types for team management
 interface TeamMember {
@@ -57,12 +58,10 @@ export function useTeam(projectId: string) {
   return useQuery<TeamData>({
     queryKey: ["team", projectId],
     queryFn: async () => {
-      const response = await fetch(`/api/projects/${projectId}/members`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch team data");
-      }
-      const data = await response.json();
-      return data.data;
+      const response = await ApiClient.get(
+        `/api/projects/${projectId}/members`
+      );
+      return handleApiResponse<TeamData>(response);
     },
     enabled: !!projectId,
   });
@@ -72,31 +71,36 @@ export function useTeam(projectId: string) {
 export function useInviteUser(projectId: string) {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (data: InviteUserData) => {
+  const sendInvitation = useMutation({
+    mutationFn: async (data: {
+      email: string;
+      role: "admin" | "member" | "viewer";
+      message?: string;
+    }) => {
       const response = await fetch(`/api/projects/${projectId}/invitations`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
+      const result = await response.json();
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to send invitation");
+        throw new Error(result.error || "Failed to send invitation");
       }
-
-      return response.json();
+      return result;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["team", projectId] });
-      toast.success(data.data.message || "Invitation sent successfully!");
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["team-invitations", projectId],
+      });
+      toast.success("Invitation sent successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
     },
   });
+
+  return sendInvitation;
 }
 
 // Hook to update member role
@@ -105,27 +109,15 @@ export function useUpdateMemberRole(projectId: string) {
 
   return useMutation({
     mutationFn: async (data: UpdateMemberRoleData) => {
-      const response = await fetch(
+      const response = await ApiClient.put(
         `/api/projects/${projectId}/members/${data.userId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ role: data.role }),
-        }
+        { role: data.role }
       );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update member role");
-      }
-
-      return response.json();
+      return handleApiResponse(response);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["team", projectId] });
-      toast.success(data.data.message || "Member role updated successfully!");
+      toast.success(data.message || "Member role updated successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -139,23 +131,14 @@ export function useRemoveMember(projectId: string) {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const response = await fetch(
-        `/api/projects/${projectId}/members/${userId}`,
-        {
-          method: "DELETE",
-        }
+      const response = await ApiClient.delete(
+        `/api/projects/${projectId}/members/${userId}`
       );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to remove member");
-      }
-
-      return response.json();
+      return handleApiResponse(response);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["team", projectId] });
-      toast.success(data.data.message || "Member removed successfully!");
+      toast.success(data.message || "Member removed successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -169,23 +152,14 @@ export function useCancelInvitation(projectId: string) {
 
   return useMutation({
     mutationFn: async (invitationId: string) => {
-      const response = await fetch(
-        `/api/projects/${projectId}/invitations/${invitationId}`,
-        {
-          method: "DELETE",
-        }
+      const response = await ApiClient.delete(
+        `/api/projects/${projectId}/invitations/${invitationId}`
       );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to cancel invitation");
-      }
-
-      return response.json();
+      return handleApiResponse(response);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["team", projectId] });
-      toast.success(data.data.message || "Invitation cancelled successfully!");
+      toast.success(data.message || "Invitation cancelled successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -199,23 +173,14 @@ export function useResendInvitation(projectId: string) {
 
   return useMutation({
     mutationFn: async (invitationId: string) => {
-      const response = await fetch(
-        `/api/projects/${projectId}/invitations/${invitationId}/resend`,
-        {
-          method: "POST",
-        }
+      const response = await ApiClient.post(
+        `/api/projects/${projectId}/invitations/${invitationId}/resend`
       );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to resend invitation");
-      }
-
-      return response.json();
+      return handleApiResponse(response);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["team", projectId] });
-      toast.success(data.data.message || "Invitation resent successfully!");
+      toast.success(data.message || "Invitation resent successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -227,23 +192,13 @@ export function useResendInvitation(projectId: string) {
 export function useAcceptInvitation() {
   return useMutation({
     mutationFn: async (token: string) => {
-      const response = await fetch("/api/invitations/accept", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
+      const response = await ApiClient.post("/api/invitations/accept", {
+        token,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to accept invitation");
-      }
-
-      return response.json();
+      return handleApiResponse(response);
     },
     onSuccess: (data) => {
-      toast.success(data.data.message || "Invitation accepted successfully!");
+      toast.success(data.message || "Invitation accepted successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -256,12 +211,8 @@ export function useInvitationDetails(token: string) {
   return useQuery({
     queryKey: ["invitation", token],
     queryFn: async () => {
-      const response = await fetch(`/api/invitations/${token}`);
-      if (!response.ok) {
-        throw new Error("Invalid or expired invitation");
-      }
-      const data = await response.json();
-      return data.data;
+      const response = await ApiClient.get(`/api/invitations/${token}`);
+      return handleApiResponse(response);
     },
     enabled: !!token,
   });

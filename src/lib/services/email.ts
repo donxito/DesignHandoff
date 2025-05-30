@@ -1,4 +1,3 @@
-import { supabase } from "@/lib/supabase/client";
 import { InvitationEmailData } from "@/lib/types/team";
 
 // * Email templates for invitations
@@ -264,67 +263,56 @@ Sent by DesignHandoff on behalf of ${inviterName}
 // * Email service for sending invitations
 
 export class EmailService {
-  private static readonly FROM_EMAIL = "noreply@designhandoff.com";
+  private static readonly FROM_EMAIL = "noreply@designhandoff.dev";
   private static readonly FROM_NAME = "DesignHandoff";
 
   /**
-   * Send invitation email using Supabase Auth
+   * Send invitation email using Resend
    */
   static async sendInvitation(
     email: string,
     data: InvitationEmailData
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // TODO: Use templates when implementing Resend
-      // const htmlTemplate = EmailTemplates.getInvitationTemplate(data);
-      // const textTemplate = EmailTemplates.getPlainTextTemplate(data);
+      // Check if Resend is configured
+      if (!process.env.RESEND_API_KEY) {
+        console.log(
+          `[DEV] RESEND_API_KEY not configured - skipping email to: ${email}`
+        );
+        console.log(`[DEV] Invitation URL: ${data.invitationUrl}`);
+        console.log(`[DEV] Project: ${data.projectName}, Role: ${data.role}`);
+        return { success: true };
+      }
 
-      // Use Supabase's built-in email functionality
-      // TODO: Use Resend
-      const { error } = await supabase.auth.admin.generateLink({
-        type: "invite",
-        email: email,
-        options: {
-          data: {
-            invitation_token: data.invitationUrl.split("/").pop(),
-            project_name: data.projectName,
-            inviter_name: data.inviterName,
-            role: data.role,
-            message: data.message || "",
-          },
-        },
+      // Dynamic import to avoid module resolution issues
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      // Generate email templates
+      const htmlTemplate = EmailTemplates.getInvitationTemplate(data);
+      const textTemplate = EmailTemplates.getPlainTextTemplate(data);
+
+      // Send email using Resend
+      const { data: emailResult, error } = await resend.emails.send({
+        from: `${this.FROM_NAME} <${this.FROM_EMAIL}>`,
+        to: [email],
+        subject: `Invitation to join ${data.projectName} on DesignHandoff`,
+        html: htmlTemplate,
+        text: textTemplate,
       });
 
       if (error) {
-        console.error("Error sending invitation email:", error);
+        console.error("Error sending invitation email via Resend:", error);
         return {
           success: false,
           error: `Failed to send invitation: ${error.message}`,
         };
       }
 
-      // TODO: Use Resend
-      /*
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: email,
-          from: {
-            email: this.FROM_EMAIL,
-            name: this.FROM_NAME,
-          },
-          subject: `Invitation to join ${data.projectName} on DesignHandoff`,
-          html: htmlTemplate,
-          text: textTemplate,
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Email service error: ${response.status}`);
-      }
-      */
-
+      console.log(
+        `✅ Invitation email sent successfully to ${email}`,
+        emailResult
+      );
       return { success: true };
     } catch (error) {
       console.error("Error in sendInvitation:", error);

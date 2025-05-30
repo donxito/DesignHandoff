@@ -20,14 +20,19 @@ export async function GET(
     // Verify authentication and project access
     const authContext = await requireProjectAccess(request, projectId, "view");
 
-    // Get project members with user details
+    // Get project members with user details (avoiding email from profiles since it doesn't exist)
     const { data: members, error: membersError } = await supabase
       .from("project_members")
       .select(
         `
-        *,
-        user:user_id(id, full_name, email, avatar_url),
-        invited_by_user:invited_by(id, full_name, email)
+        id,
+        project_id,
+        user_id, 
+        role,
+        joined_at,
+        invited_by,
+        user:user_id(id, full_name, avatar_url),
+        invited_by_user:invited_by(id, full_name)
       `
       )
       .eq("project_id", projectId)
@@ -38,13 +43,13 @@ export async function GET(
       return createErrorResponse("Failed to fetch project members", 500);
     }
 
-    // Get project owner info
+    // Get project owner info (also avoiding email)
     const { data: project, error: projectError } = await supabase
       .from("projects")
       .select(
         `
         owner_id,
-        owner:owner_id(id, full_name, email, avatar_url)
+        owner:owner_id(id, full_name, avatar_url)
       `
       )
       .eq("id", projectId)
@@ -56,8 +61,10 @@ export async function GET(
     }
 
     // Add owner to members list if not already included
-    const ownerInMembers = members?.find((m) => m.user_id === project.owner_id);
-    const allMembers = [];
+    const ownerInMembers = members?.find(
+      (m: any) => m.user_id === project.owner_id
+    );
+    const allMembers: any[] = [];
 
     if (!ownerInMembers && project.owner) {
       allMembers.push({
@@ -65,30 +72,34 @@ export async function GET(
         project_id: projectId,
         user_id: project.owner_id,
         role: "owner",
-        joined_at: null, // Will be set to project creation date in real implementation
+        joined_at: null,
         invited_by: null,
-        user: project.owner,
+        user: {
+          id: project.owner.id,
+          full_name: project.owner.full_name,
+          avatar_url: project.owner.avatar_url,
+          email: null, // Email not available from profiles table
+        },
         invited_by_user: null,
       });
     }
 
     if (members) {
-      allMembers.push(...members);
+      // Add email as null for existing members since we can't get it from profiles
+      const membersWithEmail = members.map((member: any) => ({
+        ...member,
+        user: member.user
+          ? {
+              ...member.user,
+              email: null, // Email not available from profiles table
+            }
+          : null,
+      }));
+      allMembers.push(...membersWithEmail);
     }
 
     // Get pending invitations if user has admin access
-    let invitations: Array<{
-      id: string;
-      email: string;
-      role: string;
-      status: string | null;
-      created_at: string | null;
-      expires_at: string;
-      invited_by_user?: {
-        id: string;
-        full_name: string | null;
-      } | null;
-    }> = [];
+    let invitations: any[] = [];
 
     if (
       authContext.projectRole &&
@@ -98,7 +109,13 @@ export async function GET(
         .from("project_invitations")
         .select(
           `
-          *,
+          id,
+          email,
+          role,
+          status,
+          created_at,
+          expires_at,
+          invited_by,
           invited_by_user:invited_by(id, full_name)
         `
         )
