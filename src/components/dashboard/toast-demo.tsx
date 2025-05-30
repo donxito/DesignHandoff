@@ -12,9 +12,9 @@ export default function ToastDemo() {
 
   // Simulate a promise that resolves after 2 seconds
   const handlePromise = () => {
-    return promise<Promise<ProjectData>>(
+    return promise<ProjectData>(
       () =>
-        new Promise((resolve) => {
+        new Promise<ProjectData>((resolve) => {
           setTimeout(() => {
             resolve({ name: "Project data" });
           }, 2000);
@@ -39,7 +39,8 @@ export default function ToastDemo() {
       {
         loading: "Loading project data...",
         success: "This will never show!",
-        error: (error: Error) => `Error: ${error.message}`,
+        error: (error: unknown) =>
+          `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
       }
     );
   };

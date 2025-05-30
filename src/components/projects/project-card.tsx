@@ -152,7 +152,9 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
             <div className="flex flex-wrap gap-2 mb-4">
               <ProjectStatusBadge
                 status={
-                  isProjectStatus(project.status) ? project.status : "active"
+                  project.status && isProjectStatus(project.status)
+                    ? project.status
+                    : "active"
                 }
               />
               <Badge variant="primary" size="sm">

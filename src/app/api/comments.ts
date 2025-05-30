@@ -81,9 +81,17 @@ export const commentsApi = {
     }
 
     // Map the single created comment result to the Comment type
+    // Handle the case where profiles might not be the expected User type
+    const userProfile =
+      data.profiles &&
+      typeof data.profiles === "object" &&
+      "id" in data.profiles
+        ? (data.profiles as User)
+        : undefined;
+
     return {
       ...data,
-      user: data.profiles,
+      user: userProfile,
     };
   },
 

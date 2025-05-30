@@ -15,11 +15,14 @@ export function ProjectSelector({
   selectedId,
   label = "Select Project",
 }: ProjectSelectorProps) {
-  const { data: projects, isLoading, error } = useProjects();
+  const { data: projectsResponse, isLoading, error } = useProjects();
   const [isOpen, setIsOpen] = useState(false);
 
+  // * Extract projects array from response
+  const projects = projectsResponse?.projects || [];
+
   // * Find the selected project
-  const selectedProject = projects?.find((p) => p.id === selectedId);
+  const selectedProject = projects.find((p) => p.id === selectedId);
 
   return (
     <div className="relative w-full">
@@ -64,7 +67,7 @@ export function ProjectSelector({
             <div className="px-4 py-2 text-red-500 dark:text-red-400">
               Error loading projects
             </div>
-          ) : projects && projects.length > 0 ? (
+          ) : projects.length > 0 ? (
             projects.map((project) => (
               <button
                 key={project.id}

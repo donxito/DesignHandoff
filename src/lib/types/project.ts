@@ -1,4 +1,4 @@
-import { Database } from "./supabase";
+import { Database } from "./database";
 import { User } from "./user";
 
 export type DbProject = Database["public"]["Tables"]["projects"]["Row"];
@@ -15,6 +15,10 @@ export interface Project extends DbProject {
 
 export interface ProjectMember extends DbProjectMember {
   user?: User;
+  invited_by_user?: {
+    id: string;
+    full_name: string | null;
+  } | null;
 }
 
 export interface ProjectWithMembers extends Project {
@@ -42,11 +46,16 @@ export type ProjectSortField =
 
 export type ProjectSortOrder = "asc" | "desc";
 
-export const PROJECT_STATUS = ["active", "on_hold", "archived", "completed"] as const;
+export const PROJECT_STATUS = [
+  "active",
+  "on_hold",
+  "archived",
+  "completed",
+] as const;
 
 export type ProjectStatus = (typeof PROJECT_STATUS)[number];
 
-export const isProjectStatus = (status: string): status is ProjectStatus => 
+export const isProjectStatus = (status: string): status is ProjectStatus =>
   (PROJECT_STATUS as readonly string[]).includes(status);
 
 export interface ProjectFilters {

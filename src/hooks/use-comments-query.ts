@@ -38,6 +38,9 @@ export function useCreateComment(): UseMutationResult<
   return useMutation({
     mutationFn: (data: CreateCommentData) => commentsApi.createComment(data),
     onSuccess: (newComment) => {
+      // Early return if design_file_id is null
+      if (!newComment.design_file_id) return;
+
       // Invalidate and refetch comments for this file
       queryClient.invalidateQueries({
         queryKey: commentKeys.byDesignFile(newComment.design_file_id),

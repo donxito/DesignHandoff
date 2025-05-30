@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import ProjectList from "@/components/dashboard/project-list";
@@ -18,7 +18,7 @@ import {
   ProjectStatus,
 } from "@/lib/types/project";
 
-export default function ProjectsPage() {
+function ProjectsPageContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -201,64 +201,73 @@ export default function ProjectsPage() {
           </Text>
           <Text
             as="p"
-            className="text-3xl font-bold font-pixel text-black dark:text-white"
+            className="text-3xl font-bold font-pixel text-purple-600 dark:text-purple-400"
           >
             {totalFiles}
           </Text>
         </Card>
       </div>
 
-      {/* Projects Header */}
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <Text
-              as="h1"
-              className="text-3xl font-bold font-pixel text-black dark:text-white text-adaptive mb-2"
-            >
-              Your Projects
-            </Text>
-            <Text
-              as="p"
-              className="text-gray-600 dark:text-gray-300 font-pixel"
-            >
-              Manage your design projects and collaborate with your team
-            </Text>
-          </div>
-
-          <Button variant="primary" onClick={() => setIsModalOpen(true)}>
-            Create Project
-          </Button>
-        </div>
-
-        {/* Filters and Sorting */}
-        <ProjectFiltersComponent
-          filters={filters}
-          sortField={sortField}
-          sortOrder={sortOrder}
-          onFiltersChange={handleFiltersChange}
-          onSortChange={handleSortChange}
-          onClearFilters={handleClearFilters}
-          resultCount={projects.length}
-        />
-      </div>
-
-      {/* Project List */}
-      <ProjectList
-        projects={projects}
-        isLoading={isLoading}
-        error={error}
-        refetch={refetch}
+      {/* Filters */}
+      <ProjectFiltersComponent
+        filters={filters}
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onFiltersChange={handleFiltersChange}
+        onSortChange={handleSortChange}
+        onClearFilters={handleClearFilters}
       />
 
-      {/* Project Creation Modal */}
-      {isModalOpen && (
+      {/* Main Content */}
+      <div className="space-y-6">
+        {/* Projects List */}
+        <div className="bg-white dark:bg-gray-800 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)] rounded-lg p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <Text
+                as="h2"
+                className="text-2xl font-bold font-pixel text-black dark:text-white"
+              >
+                Projects
+              </Text>
+              <Text
+                as="p"
+                className="text-sm text-gray-600 dark:text-gray-400 mt-1"
+              >
+                Manage your design projects and collaborations
+              </Text>
+            </div>
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-pixel text-sm px-4 py-2 border-2 border-black dark:border-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.5)]"
+            >
+              Create Project
+            </Button>
+          </div>
+
+          <ProjectList
+            projects={projects}
+            isLoading={isLoading}
+            error={error}
+            refetch={refetch}
+          />
+        </div>
+
+        {/* Create Project Modal */}
         <CreateProjectModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSuccess={handleProjectCreated}
         />
-      )}
+      </div>
     </DashboardLayout>
+  );
+}
+
+export default function ProjectsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProjectsPageContent />
+    </Suspense>
   );
 }
