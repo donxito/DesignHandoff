@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ApiClient, handleApiResponse } from "@/lib/utils/api-client";
+import { InviteUserData } from "@/lib/types/team";
+
+// API Response interfaces
+interface ApiSuccessResponse {
+  message?: string;
+  success?: boolean;
+}
 
 // Types for team management
 interface TeamMember {
@@ -42,12 +49,6 @@ interface TeamData {
   user_role: string;
 }
 
-interface InviteUserData {
-  email: string;
-  role: "admin" | "member" | "viewer";
-  message?: string;
-}
-
 interface UpdateMemberRoleData {
   userId: string;
   role: "admin" | "member" | "viewer";
@@ -72,11 +73,7 @@ export function useInviteUser(projectId: string) {
   const queryClient = useQueryClient();
 
   const sendInvitation = useMutation({
-    mutationFn: async (data: {
-      email: string;
-      role: "admin" | "member" | "viewer";
-      message?: string;
-    }) => {
+    mutationFn: async (data: InviteUserData) => {
       const response = await fetch(`/api/projects/${projectId}/invitations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,7 +110,7 @@ export function useUpdateMemberRole(projectId: string) {
         `/api/projects/${projectId}/members/${data.userId}`,
         { role: data.role }
       );
-      return handleApiResponse(response);
+      return handleApiResponse<ApiSuccessResponse>(response);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["team", projectId] });
@@ -134,7 +131,7 @@ export function useRemoveMember(projectId: string) {
       const response = await ApiClient.delete(
         `/api/projects/${projectId}/members/${userId}`
       );
-      return handleApiResponse(response);
+      return handleApiResponse<ApiSuccessResponse>(response);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["team", projectId] });
@@ -155,7 +152,7 @@ export function useCancelInvitation(projectId: string) {
       const response = await ApiClient.delete(
         `/api/projects/${projectId}/invitations/${invitationId}`
       );
-      return handleApiResponse(response);
+      return handleApiResponse<ApiSuccessResponse>(response);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["team", projectId] });
@@ -176,7 +173,7 @@ export function useResendInvitation(projectId: string) {
       const response = await ApiClient.post(
         `/api/projects/${projectId}/invitations/${invitationId}/resend`
       );
-      return handleApiResponse(response);
+      return handleApiResponse<ApiSuccessResponse>(response);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["team", projectId] });
@@ -195,7 +192,7 @@ export function useAcceptInvitation() {
       const response = await ApiClient.post("/api/invitations/accept", {
         token,
       });
-      return handleApiResponse(response);
+      return handleApiResponse<ApiSuccessResponse>(response);
     },
     onSuccess: (data) => {
       toast.success(data.message || "Invitation accepted successfully!");

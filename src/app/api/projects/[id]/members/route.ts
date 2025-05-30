@@ -5,6 +5,11 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/lib/middleware/permissions";
+import {
+  ProjectMember,
+  ProjectInvitation,
+  ProjectMembersResponse,
+} from "@/lib/types/team";
 
 /**
  * GET /api/projects/[id]/members
@@ -60,46 +65,88 @@ export async function GET(
       return createErrorResponse("Failed to fetch project information", 500);
     }
 
-    // Add owner to members list if not already included
-    const ownerInMembers = members?.find(
-      (m: any) => m.user_id === project.owner_id
-    );
-    const allMembers: any[] = [];
+    // Use unknown to bypass complex Supabase typing issues, then safely transform
+    const rawMembers = members as unknown as Array<{
+      id: string;
+      project_id: string;
+      user_id: string;
+      role: string;
+      joined_at: string | null;
+      invited_by: string | null;
+      user: {
+        id: string;
+        full_name: string | null;
+        avatar_url: string | null;
+      } | null;
+      invited_by_user: {
+        id: string;
+        full_name: string | null;
+      } | null;
+    }>;
 
-    if (!ownerInMembers && project.owner) {
+    const rawProject = project as unknown as {
+      owner_id: string;
+      owner: {
+        id: string;
+        full_name: string | null;
+        avatar_url: string | null;
+      } | null;
+    };
+
+    // Add owner to members list if not already included
+    const ownerInMembers = rawMembers?.find(
+      (m) => m.user_id === rawProject.owner_id
+    );
+    const allMembers: ProjectMember[] = [];
+
+    if (!ownerInMembers && rawProject.owner) {
       allMembers.push({
-        id: `owner-${project.owner_id}`,
+        id: `owner-${rawProject.owner_id}`,
         project_id: projectId,
-        user_id: project.owner_id,
+        user_id: rawProject.owner_id,
         role: "owner",
         joined_at: null,
         invited_by: null,
         user: {
-          id: project.owner.id,
-          full_name: project.owner.full_name,
-          avatar_url: project.owner.avatar_url,
+          id: rawProject.owner.id,
+          full_name: rawProject.owner.full_name,
+          avatar_url: rawProject.owner.avatar_url,
           email: null, // Email not available from profiles table
         },
-        invited_by_user: null,
+        invited_by_user: undefined,
       });
     }
 
-    if (members) {
+    if (rawMembers) {
       // Add email as null for existing members since we can't get it from profiles
-      const membersWithEmail = members.map((member: any) => ({
-        ...member,
+      const membersWithEmail: ProjectMember[] = rawMembers.map((member) => ({
+        id: member.id,
+        project_id: member.project_id,
+        user_id: member.user_id,
+        role: member.role as ProjectMember["role"],
+        joined_at: member.joined_at,
+        invited_by: member.invited_by,
         user: member.user
           ? {
-              ...member.user,
+              id: member.user.id,
+              full_name: member.user.full_name,
+              avatar_url: member.user.avatar_url,
               email: null, // Email not available from profiles table
             }
-          : null,
+          : undefined,
+        invited_by_user: member.invited_by_user
+          ? {
+              id: member.invited_by_user.id,
+              full_name: member.invited_by_user.full_name,
+              email: null,
+            }
+          : undefined,
       }));
       allMembers.push(...membersWithEmail);
     }
 
     // Get pending invitations if user has admin access
-    let invitations: any[] = [];
+    let invitations: ProjectInvitation[] = [];
 
     if (
       authContext.projectRole &&
@@ -122,15 +169,18 @@ export async function GET(
         .eq("project_id", projectId)
         .eq("status", "pending");
 
-      invitations = pendingInvitations || [];
+      invitations =
+        (pendingInvitations as unknown as ProjectInvitation[]) || [];
     }
 
-    return createSuccessResponse({
+    const response: ProjectMembersResponse = {
       members: allMembers,
       invitations,
       total: allMembers.length,
       user_role: authContext.projectRole,
-    });
+    };
+
+    return createSuccessResponse(response);
   } catch (error) {
     console.error("Error in GET /api/projects/[id]/members:", error);
 

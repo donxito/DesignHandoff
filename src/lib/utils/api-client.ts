@@ -28,7 +28,10 @@ export class ApiClient {
     });
   }
 
-  static async post(url: string, data?: any): Promise<Response> {
+  static async post(
+    url: string,
+    data?: Record<string, unknown>
+  ): Promise<Response> {
     const headers = await this.getAuthHeaders();
     return fetch(url, {
       method: "POST",
@@ -37,7 +40,10 @@ export class ApiClient {
     });
   }
 
-  static async put(url: string, data?: any): Promise<Response> {
+  static async put(
+    url: string,
+    data?: Record<string, unknown>
+  ): Promise<Response> {
     const headers = await this.getAuthHeaders();
     return fetch(url, {
       method: "PUT",
@@ -58,7 +64,7 @@ export class ApiClient {
 /**
  * Helper function to handle API responses
  */
-export async function handleApiResponse<T = any>(
+export async function handleApiResponse<T = Record<string, unknown>>(
   response: Response
 ): Promise<T> {
   if (!response.ok) {
