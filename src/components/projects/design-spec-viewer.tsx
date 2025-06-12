@@ -1,12 +1,27 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/retroui/Button";
 import { Card } from "@/components/retroui/Card";
 import { Text } from "@/components/retroui/Text";
 import { Badge } from "@/components/retroui/Badge";
-import { Ruler, Eye, X, Copy, Palette, Download } from "lucide-react";
+import {
+  Ruler,
+  Eye,
+  X,
+  Copy,
+  Palette,
+  Download,
+  Pipette,
+  Target,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import ColorPalettePanel from "@/components/projects/color-palette-panel";
+import {
+  ColorInfo,
+  extractColorFromCanvas,
+  areColorsSimilar,
+} from "@/lib/utils/color-utils";
 import Image from "next/image";
 
 interface Point {
@@ -20,13 +35,6 @@ interface Measurement {
   endPoint: Point;
   distance: number;
   angle: number;
-}
-
-interface ColorSample {
-  id: string;
-  position: Point;
-  color: string;
-  hex: string;
 }
 
 interface DesignSpecViewerProps {
@@ -45,16 +53,18 @@ export function DesignSpecViewer({
   const [mousePosition, setMousePosition] = useState<Point>({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
-  const [colorSamples, setColorSamples] = useState<ColorSample[]>([]);
+  const [extractedColors, setExtractedColors] = useState<ColorInfo[]>([]);
   const [currentMeasurement, setCurrentMeasurement] = useState<Point | null>(
     null
   );
+  const [hoverColor, setHoverColor] = useState<ColorInfo | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageNaturalSize, setImageNaturalSize] = useState({
     width: 0,
     height: 0,
   });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [showColorPalette, setShowColorPalette] = useState(false);
 
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,7 +79,6 @@ export function DesignSpecViewer({
     const scaleX = containerSize.width / imageNaturalSize.width;
     const scaleY = containerSize.height / imageNaturalSize.height;
 
-    // Image uses object-contain, so use the smaller scale factor
     return Math.min(scaleX, scaleY);
   };
 
@@ -79,15 +88,12 @@ export function DesignSpecViewer({
     const actualImageWidth = imageNaturalSize.width * scaleFactor;
     const actualImageHeight = imageNaturalSize.height * scaleFactor;
 
-    // Calculate offset due to centering (object-contain centers the image)
     const offsetX = (containerSize.width - actualImageWidth) / 2;
     const offsetY = (containerSize.height - actualImageHeight) / 2;
 
-    // Adjust coordinates
     const adjustedX = displayX - offsetX;
     const adjustedY = displayY - offsetY;
 
-    // Convert to natural image coordinates
     return {
       x: Math.round(adjustedX / scaleFactor),
       y: Math.round(adjustedY / scaleFactor),
@@ -109,27 +115,29 @@ export function DesignSpecViewer({
     };
   };
 
-  // * Get color at specific image coordinates
-  const getColorAtPosition = (imageX: number, imageY: number): string => {
-    if (!canvasRef.current || !imageRef.current) return "#000000";
+  // * Setup canvas for color extraction
+  const setupCanvas = useCallback(() => {
+    if (!canvasRef.current || !imageRef.current || !imageLoaded) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return "#000000";
+    if (!ctx) return;
 
-    // Set canvas size to match natural image size
     canvas.width = imageNaturalSize.width;
     canvas.height = imageNaturalSize.height;
 
     // Draw the image onto the canvas
     ctx.drawImage(imageRef.current, 0, 0);
+  }, [canvasRef, imageRef, imageLoaded, imageNaturalSize]);
 
-    // Get pixel data
-    const imageData = ctx.getImageData(imageX, imageY, 1, 1);
-    const [r, g, b] = imageData.data;
+  // * Extract color at position
+  const extractColorAtPosition = (
+    imageX: number,
+    imageY: number
+  ): ColorInfo | null => {
+    if (!canvasRef.current) return null;
 
-    // Convert to hex
-    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+    return extractColorFromCanvas(canvasRef.current, imageX, imageY);
   };
 
   // * Handle mouse move over the overlay
@@ -153,14 +161,22 @@ export function DesignSpecViewer({
     ) {
       setMousePosition(imageCoords);
       setIsHovering(true);
+
+      // Extract color at hover position for preview in color mode
+      if (activeMode === "color") {
+        const color = extractColorAtPosition(imageCoords.x, imageCoords.y);
+        setHoverColor(color);
+      }
     } else {
       setIsHovering(false);
+      setHoverColor(null);
     }
   };
 
   // * Handle mouse leave
   const handleMouseLeave = () => {
     setIsHovering(false);
+    setHoverColor(null);
   };
 
   // * Handle click for measurement or color sampling
@@ -177,27 +193,35 @@ export function DesignSpecViewer({
 
     if (activeMode === "color") {
       // Color sampling mode
-      const color = getColorAtPosition(imageCoords.x, imageCoords.y);
-      const newColorSample: ColorSample = {
-        id: Date.now().toString(),
-        position: imageCoords,
-        color,
-        hex: color,
-      };
+      const color = extractColorAtPosition(imageCoords.x, imageCoords.y);
+      if (color) {
+        // Check if this color is already in the palette (avoid duplicates)
+        const isDuplicate = extractedColors.some((existingColor) =>
+          areColorsSimilar(existingColor, color, 5)
+        );
 
-      setColorSamples([...colorSamples, newColorSample]);
+        if (!isDuplicate) {
+          setExtractedColors([...extractedColors, color]);
+          setShowColorPalette(true);
 
-      toast({
-        message: `Color sampled: ${color}`,
-        variant: "success",
-      });
+          toast({
+            message: "Color extracted!",
+            description: `${color.hex.toUpperCase()} added to palette`,
+            variant: "success",
+          });
+        } else {
+          toast({
+            message: "Color already in palette",
+            description: "Similar color already exists",
+            variant: "info",
+          });
+        }
+      }
     } else {
       // Measurement mode
       if (!currentMeasurement) {
-        // Start a new measurement
         setCurrentMeasurement(imageCoords);
       } else {
-        // Complete the measurement
         const startPoint = currentMeasurement;
         const endPoint = imageCoords;
 
@@ -222,7 +246,8 @@ export function DesignSpecViewer({
         setCurrentMeasurement(null);
 
         toast({
-          message: `Measurement added: ${Math.round(distance)}px`,
+          message: "Measurement added",
+          description: `${Math.round(distance)}px distance recorded`,
           variant: "success",
         });
       }
@@ -239,6 +264,13 @@ export function DesignSpecViewer({
       setImageLoaded(true);
     }
   };
+
+  // * Setup canvas when image loads
+  useEffect(() => {
+    if (imageLoaded) {
+      setupCanvas();
+    }
+  }, [imageLoaded, setupCanvas]);
 
   // * Update container size on mount and resize
   useEffect(() => {
@@ -261,8 +293,15 @@ export function DesignSpecViewer({
   // * Clear all data
   const clearAll = () => {
     setMeasurements([]);
-    setColorSamples([]);
+    setExtractedColors([]);
     setCurrentMeasurement(null);
+  };
+
+  // * Remove specific color from palette
+  const removeColor = (index: number) => {
+    const newColors = [...extractedColors];
+    newColors.splice(index, 1);
+    setExtractedColors(newColors);
   };
 
   // * Copy coordinates to clipboard
@@ -271,24 +310,11 @@ export function DesignSpecViewer({
     try {
       await navigator.clipboard.writeText(coordText);
       toast({
-        message: "Coordinates copied to clipboard",
+        message: "Coordinates copied",
         variant: "success",
       });
     } catch (err) {
       console.error("Failed to copy coordinates:", err);
-    }
-  };
-
-  // * Copy color to clipboard
-  const copyColor = async (color: string) => {
-    try {
-      await navigator.clipboard.writeText(color);
-      toast({
-        message: `Color ${color} copied to clipboard`,
-        variant: "success",
-      });
-    } catch (err) {
-      console.error("Failed to copy color:", err);
     }
   };
 
@@ -303,9 +329,12 @@ export function DesignSpecViewer({
         startPoint: m.startPoint,
         endPoint: m.endPoint,
       })),
-      colorSamples: colorSamples.map((c) => ({
-        position: c.position,
-        color: c.hex,
+      colorPalette: extractedColors.map((c) => ({
+        hex: c.hex,
+        rgb: c.rgb,
+        hsl: c.hsl,
+        brightness: c.brightness,
+        contrast: c.contrast,
       })),
       exportedAt: new Date().toISOString(),
     };
@@ -339,6 +368,11 @@ export function DesignSpecViewer({
           <Badge variant="outline" size="sm">
             Design Specs
           </Badge>
+          {extractedColors.length > 0 && (
+            <Badge variant="primary" size="sm">
+              {extractedColors.length} Colors
+            </Badge>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -370,13 +404,25 @@ export function DesignSpecViewer({
                 onClick={() => setActiveMode("color")}
                 className="gap-2"
               >
-                <Palette className="h-4 w-4" />
+                <Pipette className="h-4 w-4" />
                 Color
               </Button>
             </>
           )}
 
-          {(measurements.length > 0 || colorSamples.length > 0) && (
+          {extractedColors.length > 0 && (
+            <Button
+              variant={showColorPalette ? "primary" : "outline"}
+              size="sm"
+              onClick={() => setShowColorPalette(!showColorPalette)}
+              className="gap-2"
+            >
+              <Palette className="h-4 w-4" />
+              Palette
+            </Button>
+          )}
+
+          {(measurements.length > 0 || extractedColors.length > 0) && (
             <>
               <Button
                 variant="outline"
@@ -408,290 +454,240 @@ export function DesignSpecViewer({
         </div>
       </div>
 
-      {/* Image container with overlay */}
-      <div className="flex-1 relative overflow-hidden">
-        <div ref={containerRef} className="relative w-full h-full">
-          {/* The actual image */}
-          <Image
-            ref={imageRef}
-            src={imageUrl}
-            alt={imageName}
-            className="w-full h-full object-contain"
-            onLoad={handleImageLoad}
-            crossOrigin="anonymous"
-          />
+      {/* Main content area */}
+      <div className="flex-1 flex">
+        {/* Image container with overlay */}
+        <div className="flex-1 relative overflow-hidden">
+          <div ref={containerRef} className="relative w-full h-full">
+            {/* The actual image */}
+            <Image
+              ref={imageRef}
+              src={imageUrl}
+              alt={imageName}
+              className="w-full h-full object-contain"
+              onLoad={handleImageLoad}
+              crossOrigin="anonymous"
+            />
 
-          {/* Interactive overlay */}
-          {isInspectMode && (
-            <div
-              className={`absolute inset-0 ${
-                activeMode === "color" ? "cursor-crosshair" : "cursor-crosshair"
-              }`}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-              onClick={handleClick}
-            >
-              {/* Mouse position tooltip */}
-              {isHovering && (
-                <div
-                  className="absolute pointer-events-none z-10"
-                  style={{
-                    left: Math.min(
-                      imageToDisplayCoords(mousePosition.x, mousePosition.y).x +
-                        10,
-                      containerSize.width - 200
-                    ),
-                    top: Math.max(
-                      imageToDisplayCoords(mousePosition.x, mousePosition.y).y -
-                        50,
-                      10
-                    ),
-                  }}
-                >
-                  <Card className="px-2 py-1 bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black shadow-lg">
-                    <div className="flex items-center gap-2">
-                      <Text as="span" className="text-xs font-pixel">
-                        X: {mousePosition.x}px, Y: {mousePosition.y}px
-                      </Text>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyCoordinates();
-                        }}
-                        className="text-xs hover:opacity-70"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </Card>
-                </div>
-              )}
-
-              {/* Current measurement line */}
-              {activeMode === "measure" && currentMeasurement && isHovering && (
-                <svg className="absolute inset-0 pointer-events-none">
-                  <line
-                    x1={
-                      imageToDisplayCoords(
-                        currentMeasurement.x,
-                        currentMeasurement.y
-                      ).x
-                    }
-                    y1={
-                      imageToDisplayCoords(
-                        currentMeasurement.x,
-                        currentMeasurement.y
-                      ).y
-                    }
-                    x2={
-                      imageToDisplayCoords(mousePosition.x, mousePosition.y).x
-                    }
-                    y2={
-                      imageToDisplayCoords(mousePosition.x, mousePosition.y).y
-                    }
-                    stroke="#ff6b6b"
-                    strokeWidth="2"
-                    strokeDasharray="5,5"
-                  />
-                </svg>
-              )}
-
-              {/* Completed measurements */}
-              <svg className="absolute inset-0 pointer-events-none">
-                {measurements.map((measurement) => {
-                  const startDisplay = imageToDisplayCoords(
-                    measurement.startPoint.x,
-                    measurement.startPoint.y
-                  );
-                  const endDisplay = imageToDisplayCoords(
-                    measurement.endPoint.x,
-                    measurement.endPoint.y
-                  );
-
-                  return (
-                    <g key={measurement.id}>
-                      <line
-                        x1={startDisplay.x}
-                        y1={startDisplay.y}
-                        x2={endDisplay.x}
-                        y2={endDisplay.y}
-                        stroke="#4ade80"
-                        strokeWidth="2"
-                      />
-                      {/* Start point */}
-                      <circle
-                        cx={startDisplay.x}
-                        cy={startDisplay.y}
-                        r="4"
-                        fill="#4ade80"
-                        stroke="#fff"
-                        strokeWidth="2"
-                      />
-                      {/* End point */}
-                      <circle
-                        cx={endDisplay.x}
-                        cy={endDisplay.y}
-                        r="4"
-                        fill="#4ade80"
-                        stroke="#fff"
-                        strokeWidth="2"
-                      />
-                      {/* Distance label */}
-                      <text
-                        x={(startDisplay.x + endDisplay.x) / 2}
-                        y={(startDisplay.y + endDisplay.y) / 2 - 8}
-                        fill="#4ade80"
-                        fontSize="12"
-                        fontFamily="monospace"
-                        textAnchor="middle"
-                        className="font-pixel"
-                      >
-                        {measurement.distance}px
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* Color sample points */}
-                {colorSamples.map((sample) => {
-                  const sampleDisplay = imageToDisplayCoords(
-                    sample.position.x,
-                    sample.position.y
-                  );
-
-                  return (
-                    <g key={sample.id}>
-                      <circle
-                        cx={sampleDisplay.x}
-                        cy={sampleDisplay.y}
-                        r="6"
-                        fill={sample.color}
-                        stroke="#fff"
-                        strokeWidth="2"
-                      />
-                      <circle
-                        cx={sampleDisplay.x}
-                        cy={sampleDisplay.y}
-                        r="8"
-                        fill="none"
-                        stroke="#000"
-                        strokeWidth="1"
-                      />
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Specifications panel */}
-      {(measurements.length > 0 || colorSamples.length > 0) && (
-        <div className="border-t-3 border-black dark:border-white p-4 max-h-48 overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Measurements */}
-            {measurements.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Ruler className="h-4 w-4" />
-                  <Text
-                    as="h3"
-                    className="font-pixel font-medium text-black dark:text-white"
+            {/* Interactive overlay */}
+            {isInspectMode && (
+              <div
+                className={`absolute inset-0 ${
+                  activeMode === "color"
+                    ? "cursor-crosshair"
+                    : "cursor-crosshair"
+                }`}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                onClick={handleClick}
+              >
+                {/* Mouse position tooltip */}
+                {isHovering && (
+                  <div
+                    className="absolute pointer-events-none z-10"
+                    style={{
+                      left: Math.min(
+                        imageToDisplayCoords(mousePosition.x, mousePosition.y)
+                          .x + 15,
+                        containerSize.width - 250
+                      ),
+                      top: Math.max(
+                        imageToDisplayCoords(mousePosition.x, mousePosition.y)
+                          .y - 80,
+                        10
+                      ),
+                    }}
                   >
-                    Measurements ({measurements.length})
-                  </Text>
-                </div>
+                    <Card className="px-3 py-2 bg-black dark:bg-white text-white dark:text-black border-2 border-white dark:border-black shadow-lg">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Target className="h-3 w-3" />
+                          <Text as="span" className="text-xs font-pixel">
+                            X: {mousePosition.x}px, Y: {mousePosition.y}px
+                          </Text>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyCoordinates();
+                            }}
+                            className="text-xs hover:opacity-70"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </button>
+                        </div>
 
-                <div className="space-y-2">
-                  {measurements.map((measurement, index) => (
-                    <Card
-                      key={measurement.id}
-                      className="p-2 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
-                    >
-                      <div className="flex items-center justify-between text-xs">
-                        <Text
-                          as="span"
-                          className="font-pixel text-black dark:text-white"
-                        >
-                          #{index + 1}
-                        </Text>
-                        <Text
-                          as="span"
-                          className="font-pixel text-green-600 dark:text-green-400"
+                        {/* Color preview in color mode */}
+                        {activeMode === "color" && hoverColor && (
+                          <div className="flex items-center gap-2 pt-1 border-t border-gray-500">
+                            <div
+                              className="w-4 h-4 rounded border border-gray-300"
+                              style={{ backgroundColor: hoverColor.hex }}
+                            />
+                            <Text as="span" className="text-xs font-pixel">
+                              {hoverColor.hex.toUpperCase()}
+                            </Text>
+                            <Text as="span" className="text-xs">
+                              RGB({hoverColor.rgb.r}, {hoverColor.rgb.g},{" "}
+                              {hoverColor.rgb.b})
+                            </Text>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Current measurement line */}
+                {activeMode === "measure" &&
+                  currentMeasurement &&
+                  isHovering && (
+                    <svg className="absolute inset-0 pointer-events-none">
+                      <line
+                        x1={
+                          imageToDisplayCoords(
+                            currentMeasurement.x,
+                            currentMeasurement.y
+                          ).x
+                        }
+                        y1={
+                          imageToDisplayCoords(
+                            currentMeasurement.x,
+                            currentMeasurement.y
+                          ).y
+                        }
+                        x2={
+                          imageToDisplayCoords(mousePosition.x, mousePosition.y)
+                            .x
+                        }
+                        y2={
+                          imageToDisplayCoords(mousePosition.x, mousePosition.y)
+                            .y
+                        }
+                        stroke="#ff6b6b"
+                        strokeWidth="2"
+                        strokeDasharray="5,5"
+                      />
+                    </svg>
+                  )}
+
+                {/* Completed measurements */}
+                <svg className="absolute inset-0 pointer-events-none">
+                  {measurements.map((measurement) => {
+                    const startDisplay = imageToDisplayCoords(
+                      measurement.startPoint.x,
+                      measurement.startPoint.y
+                    );
+                    const endDisplay = imageToDisplayCoords(
+                      measurement.endPoint.x,
+                      measurement.endPoint.y
+                    );
+
+                    return (
+                      <g key={measurement.id}>
+                        <line
+                          x1={startDisplay.x}
+                          y1={startDisplay.y}
+                          x2={endDisplay.x}
+                          y2={endDisplay.y}
+                          stroke="#4ade80"
+                          strokeWidth="2"
+                        />
+                        <circle
+                          cx={startDisplay.x}
+                          cy={startDisplay.y}
+                          r="4"
+                          fill="#4ade80"
+                          stroke="#fff"
+                          strokeWidth="2"
+                        />
+                        <circle
+                          cx={endDisplay.x}
+                          cy={endDisplay.y}
+                          r="4"
+                          fill="#4ade80"
+                          stroke="#fff"
+                          strokeWidth="2"
+                        />
+                        <text
+                          x={(startDisplay.x + endDisplay.x) / 2}
+                          y={(startDisplay.y + endDisplay.y) / 2 - 8}
+                          fill="#4ade80"
+                          fontSize="12"
+                          fontFamily="monospace"
+                          textAnchor="middle"
+                          className="font-pixel"
                         >
                           {measurement.distance}px
-                        </Text>
-                      </div>
-                      <Text
-                        as="p"
-                        className="text-xs text-gray-600 dark:text-gray-400 mt-1"
-                      >
-                        ({measurement.startPoint.x}, {measurement.startPoint.y})
-                        → ({measurement.endPoint.x}, {measurement.endPoint.y})
-                      </Text>
-                      <Text
-                        as="p"
-                        className="text-xs text-gray-600 dark:text-gray-400"
-                      >
-                        Angle: {measurement.angle}°
-                      </Text>
-                    </Card>
-                  ))}
-                </div>
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
               </div>
             )}
+          </div>
+        </div>
 
-            {/* Color Samples */}
-            {colorSamples.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Palette className="h-4 w-4" />
+        {/* Color palette sidebar */}
+        {showColorPalette && extractedColors.length > 0 && (
+          <div className="w-80 border-l-3 border-black dark:border-white p-4 overflow-y-auto">
+            <ColorPalettePanel
+              colors={extractedColors}
+              onColorRemove={removeColor}
+              onClearAll={() => setExtractedColors([])}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Measurements panel (when color palette is not shown) */}
+      {!showColorPalette && measurements.length > 0 && (
+        <div className="border-t-3 border-black dark:border-white p-4 max-h-48 overflow-y-auto">
+          <div className="flex items-center gap-2 mb-3">
+            <Ruler className="h-4 w-4" />
+            <Text
+              as="h3"
+              className="font-pixel font-medium text-black dark:text-white"
+            >
+              Measurements ({measurements.length})
+            </Text>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {measurements.map((measurement, index) => (
+              <Card
+                key={measurement.id}
+                className="p-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
+              >
+                <div className="flex items-center justify-between text-sm">
                   <Text
-                    as="h3"
-                    className="font-pixel font-medium text-black dark:text-white"
+                    as="span"
+                    className="font-pixel text-black dark:text-white"
                   >
-                    Colors ({colorSamples.length})
+                    #{index + 1}
+                  </Text>
+                  <Text
+                    as="span"
+                    className="font-pixel text-green-600 dark:text-green-400"
+                  >
+                    {measurement.distance}px
                   </Text>
                 </div>
-
-                <div className="space-y-2">
-                  {colorSamples.map((sample, index) => (
-                    <Card
-                      key={sample.id}
-                      className="p-2 bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-4 h-4 rounded border border-black dark:border-white"
-                            style={{ backgroundColor: sample.color }}
-                          />
-                          <Text
-                            as="span"
-                            className="font-pixel text-black dark:text-white text-xs"
-                          >
-                            #{index + 1}
-                          </Text>
-                        </div>
-                        <button
-                          onClick={() => copyColor(sample.hex)}
-                          className="text-xs font-pixel text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                          {sample.hex}
-                        </button>
-                      </div>
-                      <Text
-                        as="p"
-                        className="text-xs text-gray-600 dark:text-gray-400 mt-1"
-                      >
-                        Position: ({sample.position.x}, {sample.position.y})
-                      </Text>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+                <Text
+                  as="p"
+                  className="text-xs text-gray-600 dark:text-gray-400 mt-1"
+                >
+                  ({measurement.startPoint.x}, {measurement.startPoint.y}) → (
+                  {measurement.endPoint.x}, {measurement.endPoint.y})
+                </Text>
+                <Text
+                  as="p"
+                  className="text-xs text-gray-600 dark:text-gray-400"
+                >
+                  Angle: {measurement.angle}°
+                </Text>
+              </Card>
+            ))}
           </div>
         </div>
       )}
@@ -707,7 +703,7 @@ export function DesignSpecViewer({
               ? currentMeasurement
                 ? "Click to complete measurement"
                 : "Click to start measurement • Hover for coordinates"
-              : "Click on colors to sample them • Hover for coordinates"}
+              : "Click on design elements to extract colors • Hover for color preview"}
           </Text>
         </div>
       )}
