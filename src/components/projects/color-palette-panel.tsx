@@ -10,8 +10,6 @@ import {
   ColorInfo,
   formatColor,
   generateColorVariations,
-  sortColorsByBrightness,
-  sortColorsByHue,
 } from "@/lib/utils/color-utils";
 import { Palette, Copy, Download, Trash2, Sparkles, Info } from "lucide-react";
 
