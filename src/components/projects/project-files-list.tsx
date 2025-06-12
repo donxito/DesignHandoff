@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useDesignFiles,
   useDeleteDesignFile,
@@ -34,8 +34,10 @@ import {
   Filter,
   FolderPlus,
   Tag,
+  Ruler,
 } from "lucide-react";
 import Image from "next/image";
+import { DesignSpecViewer } from "./design-spec-viewer";
 
 interface ProjectFilesListProps {
   projectId: string;
@@ -49,12 +51,20 @@ export function ProjectFilesList({ projectId }: ProjectFilesListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] =
     useState<string>("all");
+  const [isSpecViewerOpen, setIsSpecViewerOpen] = useState(false);
 
   const { toast } = useToast();
   const { data: files, isLoading, error, refetch } = useDesignFiles(projectId);
   const { data: categories = [] } = useFileCategories(projectId);
   const deleteFileMutation = useDeleteDesignFile();
   const assignCategoryMutation = useAssignFileToCategory();
+
+  // * clean up spec viewer state on unmount
+  useEffect(() => {
+    if (!isPreviewOpen) {
+      setIsSpecViewerOpen(false);
+    }
+  }, [isPreviewOpen]);
 
   // * Filter files based on search and category
   const filteredFiles =
@@ -216,6 +226,15 @@ export function ProjectFilesList({ projectId }: ProjectFilesListProps) {
   const getCategoryInfo = (file: DesignFile) => {
     if (!file.category_id) return null;
     return categories.find((c) => c.id === file.category_id);
+  };
+
+  // * Check if file is an image
+  const isImageFile = (file: DesignFile) => {
+    const fileType = file.file_type?.toLowerCase() || "";
+    const fileName = file.file_name.toLowerCase();
+    return (
+      fileType.includes("image") || /\.(jpg|jpeg|png|gif|svg)$/i.test(fileName)
+    );
   };
 
   if (isLoading) {
@@ -470,80 +489,108 @@ export function ProjectFilesList({ projectId }: ProjectFilesListProps) {
       {/* File Preview Dialog */}
       {selectedFile && isPreviewOpen && (
         <Dialog defaultOpen={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className="max-w-4xl rounded-lg">
-            <DialogHeader>
-              <Text
-                as="h2"
-                className="text-xl font-bold font-pixel text-black dark:text-white"
-              >
-                {selectedFile.file_name}
-              </Text>
-              {getCategoryInfo(selectedFile) && (
-                <div className="flex items-center gap-2 mt-2">
-                  <div
-                    className="w-3 h-3 rounded-full border border-black dark:border-white"
-                    style={{
-                      backgroundColor:
-                        getCategoryInfo(selectedFile)?.color || "",
-                    }}
-                  />
-                  <Badge variant="secondary" size="sm">
-                    {getCategoryInfo(selectedFile)?.name}
-                  </Badge>
-                </div>
-              )}
-            </DialogHeader>
+          <DialogContent className="max-w-6xl h-[80vh] rounded-lg flex flex-col">
+            {/* Show DesignSpecViewer for images when spec mode is active */}
+            {isImageFile(selectedFile) && isSpecViewerOpen ? (
+              <DesignSpecViewer
+                imageUrl={selectedFile.file_url}
+                imageName={selectedFile.file_name}
+                onClose={() => setIsSpecViewerOpen(false)}
+              />
+            ) : (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Text
+                        as="h2"
+                        className="text-xl font-bold font-pixel text-black dark:text-white"
+                      >
+                        {selectedFile.file_name}
+                      </Text>
+                      {getCategoryInfo(selectedFile) && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <div
+                            className="w-3 h-3 rounded-full border border-black dark:border-white"
+                            style={{
+                              backgroundColor:
+                                getCategoryInfo(selectedFile)?.color || "",
+                            }}
+                          />
+                          <Badge variant="secondary" size="sm">
+                            {getCategoryInfo(selectedFile)?.name}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
 
-            <div className="relative overflow-hidden rounded-lg border-3 border-black dark:border-white h-[60vh]">
-              {selectedFile.file_type?.includes("image") ||
-              /\.(jpg|jpeg|png|gif|svg)$/i.test(
-                selectedFile.file_name.toLowerCase()
-              ) ? (
-                <Image
-                  src={selectedFile.file_url}
-                  alt={selectedFile.file_name}
-                  fill
-                  className="object-contain"
-                />
-              ) : selectedFile.file_type?.includes("pdf") ||
-                selectedFile.file_name.toLowerCase().endsWith(".pdf") ? (
-                <iframe
-                  src={`${selectedFile.file_url}#toolbar=0`}
-                  className="w-full h-full"
-                  title={selectedFile.file_name}
-                  sandbox="allow-same-origin allow-scripts"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <Text
-                    as="p"
-                    className="text-center font-pixel text-black dark:text-white"
+                    {/* Design Specs Button - Only show for images */}
+                    {isImageFile(selectedFile) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsSpecViewerOpen(true)}
+                        className="gap-2"
+                      >
+                        <Ruler className="h-4 w-4" />
+                        Design Specs
+                      </Button>
+                    )}
+                  </div>
+                </DialogHeader>
+
+                <div className="flex-1 relative overflow-hidden rounded-lg border-3 border-black dark:border-white">
+                  {isImageFile(selectedFile) ? (
+                    <Image
+                      src={selectedFile.file_url}
+                      alt={selectedFile.file_name}
+                      fill
+                      className="object-contain"
+                    />
+                  ) : selectedFile.file_type?.includes("pdf") ||
+                    selectedFile.file_name.toLowerCase().endsWith(".pdf") ? (
+                    <iframe
+                      src={`${selectedFile.file_url}#toolbar=0`}
+                      className="w-full h-full"
+                      title={selectedFile.file_name}
+                      sandbox="allow-same-origin allow-scripts"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <Text
+                        as="p"
+                        className="text-center font-pixel text-black dark:text-white"
+                      >
+                        Preview not available for this file type
+                      </Text>
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPreviewOpen(false)}
                   >
-                    Preview not available for this file type
-                  </Text>
-                </div>
-              )}
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
-                Close
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleDownloadFile(selectedFile)}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => window.open(selectedFile.file_url, "_blank")}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open Full Size
-              </Button>
-            </DialogFooter>
+                    Close
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDownloadFile(selectedFile)}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => window.open(selectedFile.file_url, "_blank")}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Open Full Size
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
           </DialogContent>
         </Dialog>
       )}
