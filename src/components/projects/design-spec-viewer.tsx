@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useReactToPrint } from "react-to-print";
 import { Button } from "@/components/retroui/Button";
 import { Card } from "@/components/retroui/Card";
 import { Text } from "@/components/retroui/Text";
@@ -32,6 +33,9 @@ import {
 import {
   createDesignSpecification,
   exportComprehensiveSpec,
+  generateDownloadableFile,
+  downloadFile,
+  PrintableSpecification,
 } from "@/lib/utils/spec-export-utils";
 import Image from "next/image";
 
@@ -101,6 +105,7 @@ export default function DesignSpecViewer({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const printRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
 
@@ -348,6 +353,30 @@ export default function DesignSpecViewer({
     });
   };
 
+  // * React-to-Print functionality
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Design-Spec-${imageName}`,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 20mm;
+      }
+      @media print {
+        body { 
+          -webkit-print-color-adjust: exact; 
+          color-adjust: exact;
+        }
+      }
+    `,
+    onAfterPrint: () => {
+      toast({
+        message: "PDF printed successfully",
+        description: "Design specification sent to printer",
+      });
+    },
+  });
+
   // * Panel management
   const activePanel = showColorPalette
     ? "color"
@@ -473,6 +502,56 @@ export default function DesignSpecViewer({
                   className="w-full justify-start"
                 >
                   Design Tokens
+                </Button>
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => {
+                    handlePrint();
+                    setShowExportOptions(false);
+                  }}
+                  className="w-full justify-start"
+                >
+                  Print to PDF
+                </Button>
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => {
+                    const spec = createDesignSpecification(
+                      imageName,
+                      extractedColors,
+                      extractedTypography,
+                      measurements,
+                      imageUrl,
+                      projectName,
+                      imageDimensions || undefined
+                    );
+
+                    const { content, filename } = generateDownloadableFile(
+                      spec,
+                      {
+                        format: "pdf",
+                        includeColors: true,
+                        includeTypography: true,
+                        includeMeasurements: true,
+                        includeMetadata: true,
+                      }
+                    );
+
+                    downloadFile(content, filename, "text/html");
+
+                    toast({
+                      message: "PDF specification exported",
+                      description:
+                        "HTML file downloaded - open and print to PDF",
+                    });
+
+                    setShowExportOptions(false);
+                  }}
+                  className="w-full justify-start"
+                >
+                  PDF Report (HTML)
                 </Button>
               </div>
             )}
@@ -983,6 +1062,23 @@ export default function DesignSpecViewer({
           onClick={() => setShowExportOptions(false)}
         />
       )}
+
+      {/* Hidden component for react-to-print */}
+      <div style={{ display: "none" }}>
+        <div ref={printRef}>
+          <PrintableSpecification
+            spec={createDesignSpecification(
+              imageName,
+              extractedColors,
+              extractedTypography,
+              measurements,
+              imageUrl,
+              projectName,
+              imageDimensions || undefined
+            )}
+          />
+        </div>
+      </div>
     </div>
   );
 }

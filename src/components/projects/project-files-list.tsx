@@ -35,9 +35,11 @@ import {
   Ruler,
   Type,
   Palette,
+  Printer,
 } from "lucide-react";
 import Image from "next/image";
 import DesignSpecViewer from "./design-spec-viewer";
+import { BatchPDFExport } from "./batch-pdf-export";
 
 interface ProjectFilesListProps {
   projectId: string;
@@ -56,6 +58,7 @@ export function ProjectFilesList({
   const [selectedCategoryFilter, setSelectedCategoryFilter] =
     useState<string>("all");
   const [isSpecViewerOpen, setIsSpecViewerOpen] = useState(false);
+  const [isBatchExportOpen, setIsBatchExportOpen] = useState(false);
 
   const { toast } = useToast();
   const { data: files, isLoading, error, refetch } = useDesignFiles(projectId);
@@ -63,14 +66,14 @@ export function ProjectFilesList({
   const deleteFileMutation = useDeleteDesignFile();
   const assignCategoryMutation = useAssignFileToCategory();
 
-  // Clean up spec viewer state on unmount
+  // * Clean up spec viewer state on unmount
   useEffect(() => {
     if (!isPreviewOpen) {
       setIsSpecViewerOpen(false);
     }
   }, [isPreviewOpen]);
 
-  // Filter files based on search and category
+  // * Filter files based on search and category
   const filteredFiles = files?.filter((file) => {
     const matchesSearch = file.file_name
       .toLowerCase()
@@ -82,7 +85,7 @@ export function ProjectFilesList({
     return matchesSearch && matchesCategory;
   });
 
-  // Check if file is an image
+  // * Check if file is an image
   const isImageFile = (file: DesignFile): boolean => {
     const imageExtensions = [
       ".jpg",
@@ -100,12 +103,15 @@ export function ProjectFilesList({
     );
   };
 
-  // Get category info for a file
+  // * Get image files for batch export
+  const imageFiles = filteredFiles?.filter((file) => isImageFile(file)) || [];
+
+  // * Get category info for a file
   const getCategoryInfo = (file: DesignFile) => {
     return categories.find((cat) => cat.id === file.category_id);
   };
 
-  // Handle file download
+  // * Handle file download
   const handleDownloadFile = async (file: DesignFile) => {
     try {
       const response = await fetch(file.file_url);
@@ -133,7 +139,7 @@ export function ProjectFilesList({
     }
   };
 
-  // Handle file deletion
+  // * Handle file deletion
   const handleDeleteFile = async () => {
     if (!selectedFile) return;
 
@@ -161,7 +167,7 @@ export function ProjectFilesList({
     }
   };
 
-  // Handle category assignment
+  // * Handle category assignment
   const handleAssignCategory = async (categoryId: string) => {
     if (!selectedFile) return;
 
@@ -252,11 +258,24 @@ export function ProjectFilesList({
           </div>
         </div>
 
-        {filteredFiles && (
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-            Showing {filteredFiles.length} of {files?.length || 0} files
-          </div>
-        )}
+        <div className="flex items-center justify-between mt-4">
+          {filteredFiles && (
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Showing {filteredFiles.length} of {files?.length || 0} files
+            </div>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsBatchExportOpen(true)}
+            disabled={imageFiles.length === 0}
+            className="gap-2"
+          >
+            <Printer className="h-4 w-4" />
+            Batch PDF Export ({imageFiles.length})
+          </Button>
+        </div>
       </Card>
 
       {/* Files Grid */}
@@ -487,6 +506,7 @@ export function ProjectFilesList({
                       src={selectedFile.file_url}
                       className="w-full h-full"
                       title={selectedFile.file_name}
+                      sandbox="allow-same-origin allow-scripts"
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -642,6 +662,14 @@ export function ProjectFilesList({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Batch PDF Export Dialog */}
+      <BatchPDFExport
+        isOpen={isBatchExportOpen}
+        onClose={() => setIsBatchExportOpen(false)}
+        imageFiles={imageFiles}
+        projectName={projectName}
+      />
     </div>
   );
 }

@@ -8,6 +8,16 @@ import {
   TypographyDesignTokens,
 } from "@/lib/utils/typography-utils";
 
+// * HTML escape utility to prevent XSS
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export interface Measurement {
   id: string;
   startPoint: { x: number; y: number };
@@ -296,6 +306,15 @@ export function generateDownloadableFile(
         mimeType: "application/json",
       };
 
+    case "pdf":
+      // PDF export generates HTML that can be printed to PDF via browser
+      // or used with react-to-print
+      return {
+        content: generatePDFContent(spec),
+        filename: `${baseName}-spec-${timestamp}.html`,
+        mimeType: "text/html",
+      };
+
     default:
       throw new Error(`Unsupported export format: ${options.format}`);
   }
@@ -344,7 +363,7 @@ export function generatePDFContent(spec: DesignSpecification): string {
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Design Specification - ${spec.fileName}</title>
+      <title>Design Specification - ${escapeHtml(spec.fileName)}</title>
       <style>
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -456,10 +475,10 @@ export function generatePDFContent(spec: DesignSpecification): string {
       <div class="header">
         <h1>Design Specification</h1>
         <div class="metadata">
-          <p><strong>File:</strong> ${spec.fileName}</p>
-          ${spec.projectName ? `<p><strong>Project:</strong> ${spec.projectName}</p>` : ""}
-          <p><strong>Generated:</strong> ${new Date(spec.createdAt).toLocaleString()}</p>
-          <p><strong>Version:</strong> ${spec.version}</p>
+          <p><strong>File:</strong> ${escapeHtml(spec.fileName)}</p>
+          ${spec.projectName ? `<p><strong>Project:</strong> ${escapeHtml(spec.projectName)}</p>` : ""}
+          <p><strong>Generated:</strong> ${escapeHtml(new Date(spec.createdAt).toLocaleString())}</p>
+          <p><strong>Version:</strong> ${escapeHtml(spec.version)}</p>
         </div>
       </div>
 
@@ -500,23 +519,23 @@ export function generatePDFContent(spec: DesignSpecification): string {
             (typo) => `
           <div class="typography-item">
             <div class="typography-preview" style="
-              font-family: '${typo.fontFamily}', sans-serif;
+              font-family: '${escapeHtml(typo.fontFamily)}', sans-serif;
               font-size: ${Math.min(typo.fontSize, 24)}px;
               font-weight: ${typo.fontWeight};
               line-height: ${typo.lineHeight};
               letter-spacing: ${typo.letterSpacing}px;
-              color: ${typo.color};
+              color: ${escapeHtml(typo.color)};
             ">
-              ${typo.label || `Sample ${typo.type} text`}
+              ${escapeHtml(typo.label || `Sample ${typo.type} text`)}
             </div>
             <div class="typography-details">
-              <div><strong>Font Family:</strong> ${typo.fontFamily}</div>
+              <div><strong>Font Family:</strong> ${escapeHtml(typo.fontFamily)}</div>
               <div><strong>Font Size:</strong> ${typo.fontSize}px</div>
               <div><strong>Font Weight:</strong> ${typo.fontWeight}</div>
               <div><strong>Line Height:</strong> ${typo.lineHeight}</div>
               <div><strong>Letter Spacing:</strong> ${typo.letterSpacing}px</div>
-              <div><strong>Color:</strong> ${typo.color}</div>
-              <div><strong>Type:</strong> ${typo.type}</div>
+              <div><strong>Color:</strong> ${escapeHtml(typo.color)}</div>
+              <div><strong>Type:</strong> ${escapeHtml(typo.type)}</div>
             </div>
           </div>
         `
@@ -570,7 +589,7 @@ export function generatePDFContent(spec: DesignSpecification): string {
   return html;
 }
 
-// * Create a printable component reference for react-to-print
+// * Printable component reference for react-to-print
 export const PrintableSpecification = ({
   spec,
 }: {
