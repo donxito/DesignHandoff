@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/retroui/Card";
 import { Text } from "@/components/retroui/Text";
 import { Button } from "@/components/retroui/Button";
@@ -39,18 +39,71 @@ export default function ColorPalettePanel({
   const [showVariations, setShowVariations] = useState(false);
   const { toast } = useToast();
 
-  // *Sort colors based on selected sort type
-  const sortedColors = (() => {
+  // * Sort colors based on selected sort type and maintain original indices
+  const sortedColorsWithIndices = (() => {
+    const colorsWithIndices = colors.map((color, originalIndex) => ({
+      color,
+      originalIndex,
+    }));
+
     switch (sortType) {
       case "brightness":
-        return sortColorsByBrightness(colors);
+        return colorsWithIndices.sort(
+          (a, b) => a.color.brightness - b.color.brightness
+        );
       case "hue":
-        return sortColorsByHue(colors);
+        return colorsWithIndices.sort((a, b) => a.color.hsl.h - b.color.hsl.h);
       case "extraction":
       default:
-        return colors;
+        return colorsWithIndices;
     }
   })();
+
+  const sortedColors = sortedColorsWithIndices.map((item) => item.color);
+
+  // * Handle selectedColorIndex when colors array changes
+  useEffect(() => {
+    if (selectedColorIndex !== null) {
+      // Check if selectedColorIndex is out of bounds
+      if (selectedColorIndex >= sortedColors.length) {
+        // Reset to null if index is out of bounds
+        setSelectedColorIndex(null);
+      } else if (sortedColors.length === 0) {
+        // Reset if no colors left
+        setSelectedColorIndex(null);
+      }
+    }
+  }, [colors.length, selectedColorIndex, sortedColors.length]);
+
+  // * Reset selectedColorIndex when sorting changes
+  useEffect(() => {
+    setSelectedColorIndex(null);
+  }, [sortType]);
+
+  // * Handle color removal with proper index management
+  const handleColorRemove = (sortedIndex: number) => {
+    if (sortedIndex < 0 || sortedIndex >= sortedColorsWithIndices.length) {
+      console.error("Invalid color index for removal");
+      return;
+    }
+
+    // Get the original index of the color to remove
+    const originalIndex = sortedColorsWithIndices[sortedIndex].originalIndex;
+
+    // Reset selectedColorIndex if we're removing the selected color
+    if (selectedColorIndex === sortedIndex) {
+      setSelectedColorIndex(null);
+    } else if (
+      selectedColorIndex !== null &&
+      selectedColorIndex > sortedIndex
+    ) {
+      // Adjust selectedColorIndex if removing a color before the selected one
+      setSelectedColorIndex(selectedColorIndex - 1);
+    }
+
+    // Remove the color using the original index
+    onColorRemove(originalIndex);
+  };
 
   // * Copy color to clipboard
   const copyColor = async (color: ColorInfo, format: ColorFormat) => {
@@ -142,6 +195,18 @@ export default function ColorPalettePanel({
     return generateColorVariations(color);
   };
 
+  // * Get the currently selected color with bounds checking
+  const getSelectedColor = (): ColorInfo | null => {
+    if (
+      selectedColorIndex === null ||
+      selectedColorIndex < 0 ||
+      selectedColorIndex >= sortedColors.length
+    ) {
+      return null;
+    }
+    return sortedColors[selectedColorIndex];
+  };
+
   if (colors.length === 0) {
     return (
       <Card
@@ -162,6 +227,8 @@ export default function ColorPalettePanel({
       </Card>
     );
   }
+
+  const selectedColor = getSelectedColor();
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -225,7 +292,7 @@ export default function ColorPalettePanel({
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {sortedColors.map((color, index) => (
           <Card
-            key={`${color.hex}-${index}`}
+            key={`${color.hex}-${sortedColorsWithIndices[index].originalIndex}`}
             className={`p-3 border-2 cursor-pointer transition-all ${
               selectedColorIndex === index
                 ? "border-blue-500 shadow-lg"
@@ -280,13 +347,13 @@ export default function ColorPalettePanel({
       </div>
 
       {/* Detailed color information for selected color */}
-      {selectedColorIndex !== null && (
+      {selectedColor && (
         <Card className="p-4 border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20">
           <div className="flex items-start gap-4">
             {/* Large color swatch */}
             <div
               className="w-20 h-20 rounded border-2 border-black dark:border-white flex-shrink-0"
-              style={{ backgroundColor: sortedColors[selectedColorIndex].hex }}
+              style={{ backgroundColor: selectedColor.hex }}
             />
 
             {/* Detailed info */}
@@ -311,38 +378,30 @@ export default function ColorPalettePanel({
                       <div className="flex items-center justify-between">
                         <span>HEX:</span>
                         <button
-                          onClick={() =>
-                            copyColor(sortedColors[selectedColorIndex], "hex")
-                          }
+                          onClick={() => copyColor(selectedColor, "hex")}
                           className="font-mono hover:bg-gray-200 dark:hover:bg-gray-700 px-1 rounded"
                         >
-                          {sortedColors[selectedColorIndex].hex.toUpperCase()}
+                          {selectedColor.hex.toUpperCase()}
                         </button>
                       </div>
                       <div className="flex items-center justify-between">
                         <span>RGB:</span>
                         <button
-                          onClick={() =>
-                            copyColor(sortedColors[selectedColorIndex], "rgb")
-                          }
+                          onClick={() => copyColor(selectedColor, "rgb")}
                           className="font-mono hover:bg-gray-200 dark:hover:bg-gray-700 px-1 rounded"
                         >
-                          {sortedColors[selectedColorIndex].rgb.r},{" "}
-                          {sortedColors[selectedColorIndex].rgb.g},{" "}
-                          {sortedColors[selectedColorIndex].rgb.b}
+                          {selectedColor.rgb.r}, {selectedColor.rgb.g},{" "}
+                          {selectedColor.rgb.b}
                         </button>
                       </div>
                       <div className="flex items-center justify-between">
                         <span>HSL:</span>
                         <button
-                          onClick={() =>
-                            copyColor(sortedColors[selectedColorIndex], "hsl")
-                          }
+                          onClick={() => copyColor(selectedColor, "hsl")}
                           className="font-mono hover:bg-gray-200 dark:hover:bg-gray-700 px-1 rounded"
                         >
-                          {sortedColors[selectedColorIndex].hsl.h}°,{" "}
-                          {sortedColors[selectedColorIndex].hsl.s}%,{" "}
-                          {sortedColors[selectedColorIndex].hsl.l}%
+                          {selectedColor.hsl.h}°, {selectedColor.hsl.s}%,{" "}
+                          {selectedColor.hsl.l}%
                         </button>
                       </div>
                     </div>
@@ -359,20 +418,18 @@ export default function ColorPalettePanel({
                       <div className="flex items-center justify-between">
                         <span>vs White:</span>
                         <span className="font-mono">
-                          {sortedColors[selectedColorIndex].contrast.white}:1
+                          {selectedColor.contrast.white}:1
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span>vs Black:</span>
                         <span className="font-mono">
-                          {sortedColors[selectedColorIndex].contrast.black}:1
+                          {selectedColor.contrast.black}:1
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Rating:</span>
-                        {getAccessibilityBadge(
-                          sortedColors[selectedColorIndex].contrast.rating
-                        )}
+                        {getAccessibilityBadge(selectedColor.contrast.rating)}
                       </div>
                     </div>
                   </div>
@@ -384,9 +441,7 @@ export default function ColorPalettePanel({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    copyColor(sortedColors[selectedColorIndex], "css")
-                  }
+                  onClick={() => copyColor(selectedColor, "css")}
                   className="gap-1"
                 >
                   <Copy className="h-3 w-3" />
@@ -406,7 +461,7 @@ export default function ColorPalettePanel({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onColorRemove(selectedColorIndex)}
+                  onClick={() => handleColorRemove(selectedColorIndex!)}
                   className="gap-1 text-red-500 hover:text-red-700"
                 >
                   <Trash2 className="h-3 w-3" />
@@ -417,7 +472,7 @@ export default function ColorPalettePanel({
           </div>
 
           {/* Color variations */}
-          {showVariations && (
+          {showVariations && selectedColor && (
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <Text
                 as="h5"
@@ -426,24 +481,22 @@ export default function ColorPalettePanel({
                 Color Variations
               </Text>
               <div className="grid grid-cols-7 gap-2">
-                {getColorVariations(sortedColors[selectedColorIndex]).map(
-                  (variation, vIndex) => (
-                    <button
-                      key={vIndex}
-                      onClick={() => copyColor(variation, copyFormat)}
-                      className="group relative"
-                      title={`${variation.hex} (Click to copy)`}
-                    >
-                      <div
-                        className="w-8 h-8 rounded border border-gray-300 dark:border-gray-600 group-hover:border-black dark:group-hover:border-white transition-colors"
-                        style={{ backgroundColor: variation.hex }}
-                      />
-                      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                        {variation.hsl.l}%
-                      </div>
-                    </button>
-                  )
-                )}
+                {getColorVariations(selectedColor).map((variation, vIndex) => (
+                  <button
+                    key={vIndex}
+                    onClick={() => copyColor(variation, copyFormat)}
+                    className="group relative"
+                    title={`${variation.hex} (Click to copy)`}
+                  >
+                    <div
+                      className="w-8 h-8 rounded border border-gray-300 dark:border-gray-600 group-hover:border-black dark:group-hover:border-white transition-colors"
+                      style={{ backgroundColor: variation.hex }}
+                    />
+                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                      {variation.hsl.l}%
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           )}

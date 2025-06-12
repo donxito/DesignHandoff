@@ -14,6 +14,8 @@ import {
   Download,
   Pipette,
   Target,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ColorPalettePanel from "@/components/projects/color-palette-panel";
@@ -66,10 +68,108 @@ export function DesignSpecViewer({
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [showColorPalette, setShowColorPalette] = useState(false);
 
+  // * CORS handling state
+  const [corsProcessedImageUrl, setCorsProcessedImageUrl] = useState<
+    string | null
+  >(null);
+  const [corsError, setCorsError] = useState<boolean>(false);
+  const [isProcessingCors, setIsProcessingCors] = useState(false);
+  const [isCrossOriginImage, setIsCrossOriginImage] = useState(false);
+
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { toast } = useToast();
+
+  // * Check if URL is cross-origin
+  const isCrossOrigin = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url, window.location.href);
+      return urlObj.origin !== window.location.origin;
+    } catch {
+      return false;
+    }
+  };
+
+  // * Process cross-origin image with CORS
+  const processCorsImage = useCallback(
+    async (url: string): Promise<string | null> => {
+      try {
+        setIsProcessingCors(true);
+        setCorsError(false);
+
+        // Fetch the image with CORS
+        const response = await fetch(url, {
+          mode: "cors",
+          cache: "force-cache", // Use cache when possible for performance
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch image: ${response.status} ${response.statusText}`
+          );
+        }
+
+        // Convert to blob
+        const blob = await response.blob();
+
+        // Create object URL
+        const objectUrl = URL.createObjectURL(blob);
+
+        return objectUrl;
+      } catch (error) {
+        console.error("CORS image processing failed:", error);
+        setCorsError(true);
+        toast({
+          message: "CORS Error",
+          description:
+            "Cannot extract colors from this cross-origin image. Color sampling will be disabled.",
+          variant: "warning",
+        });
+        return null;
+      } finally {
+        setIsProcessingCors(false);
+      }
+    },
+    [toast]
+  );
+
+  // * Handle CORS processing when image URL changes
+  useEffect(() => {
+    const setupImageForCors = async () => {
+      // Reset states
+      setCorsProcessedImageUrl(null);
+      setCorsError(false);
+      setImageLoaded(false);
+
+      const isExternal = isCrossOrigin(imageUrl);
+      setIsCrossOriginImage(isExternal);
+
+      if (isExternal) {
+        // Process cross-origin image
+        const processedUrl = await processCorsImage(imageUrl);
+        setCorsProcessedImageUrl(processedUrl);
+      }
+    };
+
+    setupImageForCors();
+
+    // Cleanup object URL when component unmounts or URL changes
+    return () => {
+      if (corsProcessedImageUrl) {
+        URL.revokeObjectURL(corsProcessedImageUrl);
+      }
+    };
+  }, [imageUrl, processCorsImage]);
+
+  // * Clean up object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (corsProcessedImageUrl) {
+        URL.revokeObjectURL(corsProcessedImageUrl);
+      }
+    };
+  }, [corsProcessedImageUrl]);
 
   // * Calculate scale factor between natural image size and displayed size
   const getScaleFactor = () => {
@@ -135,7 +235,7 @@ export function DesignSpecViewer({
     imageX: number,
     imageY: number
   ): ColorInfo | null => {
-    if (!canvasRef.current) return null;
+    if (!canvasRef.current || corsError) return null;
 
     return extractColorFromCanvas(canvasRef.current, imageX, imageY);
   };
@@ -163,7 +263,7 @@ export function DesignSpecViewer({
       setIsHovering(true);
 
       // Extract color at hover position for preview in color mode
-      if (activeMode === "color") {
+      if (activeMode === "color" && !corsError) {
         const color = extractColorAtPosition(imageCoords.x, imageCoords.y);
         setHoverColor(color);
       }
@@ -192,6 +292,17 @@ export function DesignSpecViewer({
     const imageCoords = displayToImageCoords(displayCoords.x, displayCoords.y);
 
     if (activeMode === "color") {
+      // Check if color extraction is available
+      if (corsError) {
+        toast({
+          message: "Color Extraction Unavailable",
+          description:
+            "Cannot extract colors from cross-origin images without proper CORS headers.",
+          variant: "warning",
+        });
+        return;
+      }
+
       // Color sampling mode
       const color = extractColorAtPosition(imageCoords.x, imageCoords.y);
       if (color) {
@@ -351,6 +462,17 @@ export function DesignSpecViewer({
     URL.revokeObjectURL(url);
   };
 
+  // * Get the appropriate image URL to display
+  const getDisplayImageUrl = () => {
+    if (isCrossOriginImage && corsProcessedImageUrl) {
+      return corsProcessedImageUrl;
+    }
+    return imageUrl;
+  };
+
+  // * Determine if color mode should be disabled
+  const isColorModeDisabled = corsError && isCrossOriginImage;
+
   return (
     <div className="flex flex-col h-full">
       {/* Hidden canvas for color sampling */}
@@ -368,6 +490,18 @@ export function DesignSpecViewer({
           <Badge variant="outline" size="sm">
             Design Specs
           </Badge>
+          {isProcessingCors && (
+            <Badge variant="warning" size="sm" className="gap-1">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Processing CORS
+            </Badge>
+          )}
+          {corsError && (
+            <Badge variant="danger" size="sm" className="gap-1">
+              <AlertCircle className="h-3 w-3" />
+              CORS Error
+            </Badge>
+          )}
           {extractedColors.length > 0 && (
             <Badge variant="primary" size="sm">
               {extractedColors.length} Colors
@@ -403,9 +537,16 @@ export function DesignSpecViewer({
                 size="sm"
                 onClick={() => setActiveMode("color")}
                 className="gap-2"
+                disabled={isColorModeDisabled}
+                title={
+                  isColorModeDisabled
+                    ? "Color extraction unavailable for cross-origin images without CORS"
+                    : "Extract colors from design"
+                }
               >
                 <Pipette className="h-4 w-4" />
                 Color
+                {isColorModeDisabled && <X className="h-3 w-3 text-red-500" />}
               </Button>
             </>
           )}
@@ -459,18 +600,33 @@ export function DesignSpecViewer({
         {/* Image container with overlay */}
         <div className="flex-1 relative overflow-hidden">
           <div ref={containerRef} className="relative w-full h-full">
-            {/* The actual image */}
-            <Image
-              ref={imageRef}
-              src={imageUrl}
-              alt={imageName}
-              className="w-full h-full object-contain"
-              onLoad={handleImageLoad}
-              crossOrigin="anonymous"
-            />
+            {/* Conditional image rendering - use plain img for cross-origin, Next.js Image for same-origin */}
+            {isCrossOriginImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                ref={imageRef}
+                src={getDisplayImageUrl()}
+                alt={imageName}
+                className="w-full h-full object-contain"
+                onLoad={handleImageLoad}
+                crossOrigin="anonymous"
+                style={{ maxWidth: "100%", maxHeight: "100%" }}
+              />
+            ) : (
+              <Image
+                ref={imageRef}
+                src={imageUrl}
+                alt={imageName}
+                className="w-full h-full object-contain"
+                onLoad={handleImageLoad}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+                priority
+              />
+            )}
 
             {/* Interactive overlay */}
-            {isInspectMode && (
+            {isInspectMode && imageLoaded && (
               <div
                 className={`absolute inset-0 ${
                   activeMode === "color"
@@ -517,7 +673,7 @@ export function DesignSpecViewer({
                         </div>
 
                         {/* Color preview in color mode */}
-                        {activeMode === "color" && hoverColor && (
+                        {activeMode === "color" && hoverColor && !corsError && (
                           <div className="flex items-center gap-2 pt-1 border-t border-gray-500">
                             <div
                               className="w-4 h-4 rounded border border-gray-300"
@@ -529,6 +685,16 @@ export function DesignSpecViewer({
                             <Text as="span" className="text-xs">
                               RGB({hoverColor.rgb.r}, {hoverColor.rgb.g},{" "}
                               {hoverColor.rgb.b})
+                            </Text>
+                          </div>
+                        )}
+
+                        {/* CORS error indicator */}
+                        {activeMode === "color" && corsError && (
+                          <div className="flex items-center gap-2 pt-1 border-t border-red-500">
+                            <AlertCircle className="h-3 w-3 text-red-400" />
+                            <Text as="span" className="text-xs text-red-400">
+                              Color extraction disabled
                             </Text>
                           </div>
                         )}
@@ -703,7 +869,9 @@ export function DesignSpecViewer({
               ? currentMeasurement
                 ? "Click to complete measurement"
                 : "Click to start measurement • Hover for coordinates"
-              : "Click on design elements to extract colors • Hover for color preview"}
+              : corsError
+                ? "Measurement mode available • Color extraction disabled for cross-origin images"
+                : "Click on design elements to extract colors • Hover for color preview"}
           </Text>
         </div>
       )}
