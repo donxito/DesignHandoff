@@ -73,12 +73,8 @@ This project is configured for easy deployment on Vercel.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyourusername%2Fdesignhandoff)
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
-- RetroUI.dev for the amazing component library
-- Supabase team for the excellent backend service
-- Next.js team for the incredible framework
+- RetroUI.dev for the component library
+- Supabase team for the backend service
+- Next.js team for the framework
