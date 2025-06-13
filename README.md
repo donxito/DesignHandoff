@@ -2,7 +2,9 @@
 
 A modern platform that bridges the gap between designers and developers, streamlining the handoff process for digital products.
 
-![DesignHandoff Banner](https://placehold.co/1200x300/e5e7eb/a3a3a3?text=DesignHandoff+Platform)
+<!-- ![DesignHandoff Banner](https://placehold.co/1200x300/e5e7eb/a3a3a3?text=DesignHandoff+Platform) -->
+
+STILL WORK IN PROGRESS
 
 ## 🚀 About
 
@@ -66,22 +68,6 @@ pnpm dev
 ```
 
 5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## 📝 Project Structure
-
-See [PROJECT-STRUCTURE.md](./PROJECT-STRUCTURE.md) for the detailed project structure.
-
-## 📋 Development Roadmap
-
-See [PLANNING.md](./PLANNING.md) for the detailed development roadmap.
-
-## 🧪 Testing
-
-```bash
-pnpm test
-```
-
-## 🚀 Deployment
 
 This project is configured for easy deployment on Vercel.
 
