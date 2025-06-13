@@ -75,6 +75,6 @@ This project is configured for easy deployment on Vercel.
 
 ## 🙏 Acknowledgments
 
-- RetroUI.dev for the component library
-- Supabase team for the backend service
-- Next.js team for the framework
+- [RetroUI.dev](https://retroui.dev/) for the component library
+- [Supabase](https://supabase.com/) for the backend service
+- [Next.js](https://nextjs.org/) for the framework
