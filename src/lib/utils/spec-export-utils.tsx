@@ -26,6 +26,34 @@ export interface Measurement {
   angle: number;
 }
 
+export interface SpacingMeasurement {
+  id: string;
+  points: { x: number; y: number }[];
+  measurements: {
+    horizontal: number;
+    vertical: number;
+    diagonal: number;
+  };
+  type: "margin" | "padding" | "spacing";
+  label?: string;
+}
+
+export interface GridSettings {
+  enabled: boolean;
+  size: number;
+  color: string;
+  opacity: number;
+  snapToGrid: boolean;
+}
+
+export interface GuidelineSettings {
+  enabled: boolean;
+  showMargins: boolean;
+  showPadding: boolean;
+  marginColor: string;
+  paddingColor: string;
+}
+
 export interface DesignSpecification {
   // Metadata
   fileName: string;
@@ -37,6 +65,11 @@ export interface DesignSpecification {
   colors: ColorInfo[];
   typography: TypographyProperties[];
   measurements: Measurement[];
+
+  // NEW: Advanced measurements
+  spacingMeasurements?: SpacingMeasurement[];
+  gridSettings?: GridSettings;
+  guidelineSettings?: GuidelineSettings;
 
   // Image info
   imageUrl: string;
@@ -89,7 +122,10 @@ export function createDesignSpecification(
   measurements: Measurement[],
   imageUrl: string,
   projectName?: string,
-  imageDimensions?: { width: number; height: number }
+  imageDimensions?: { width: number; height: number },
+  spacingMeasurements?: SpacingMeasurement[],
+  gridSettings?: GridSettings,
+  guidelineSettings?: GuidelineSettings
 ): DesignSpecification {
   return {
     fileName,
@@ -99,6 +135,9 @@ export function createDesignSpecification(
     colors,
     typography,
     measurements,
+    spacingMeasurements,
+    gridSettings,
+    guidelineSettings,
     imageUrl,
     imageDimensions,
   };
@@ -132,6 +171,9 @@ export function exportAsJSON(
 
   if (options.includeMeasurements) {
     filteredSpec.measurements = spec.measurements;
+    filteredSpec.spacingMeasurements = spec.spacingMeasurements;
+    filteredSpec.gridSettings = spec.gridSettings;
+    filteredSpec.guidelineSettings = spec.guidelineSettings;
   }
 
   return JSON.stringify(filteredSpec, null, 2);
@@ -201,10 +243,46 @@ export function exportAsCSS(
   if (options.includeMeasurements && spec.measurements.length > 0) {
     css += `/* Measurements */\n`;
     spec.measurements.forEach((measurement, index) => {
-      css += `/* Measurement ${index + 1}: ${measurement.distance}px */\n`;
-      css += `/* From (${measurement.startPoint.x}, ${measurement.startPoint.y}) */\n`;
-      css += `/* To (${measurement.endPoint.x}, ${measurement.endPoint.y}) */\n\n`;
+      css += `/* Measurement ${index + 1}: ${measurement.distance}px `;
+      css += `from (${measurement.startPoint.x}, ${measurement.startPoint.y}) `;
+      css += `to (${measurement.endPoint.x}, ${measurement.endPoint.y}) */\n`;
     });
+    css += `\n`;
+  }
+
+  // NEW: Spacing measurements as comments
+  if (
+    options.includeMeasurements &&
+    spec.spacingMeasurements &&
+    spec.spacingMeasurements.length > 0
+  ) {
+    css += `/* Spacing Measurements */\n`;
+    spec.spacingMeasurements.forEach((spacing, index) => {
+      css += `/* ${spacing.label || `Spacing ${index + 1}`}: `;
+      css += `${spacing.measurements.horizontal}×${spacing.measurements.vertical}px `;
+      css += `(${spacing.type}) */\n`;
+    });
+    css += `\n`;
+  }
+
+  // NEW: Grid settings as CSS variables
+  if (
+    options.includeMeasurements &&
+    spec.gridSettings &&
+    spec.gridSettings.enabled
+  ) {
+    css += `/* Grid Settings */\n`;
+    css += `:root {\n`;
+    css += `  --grid-size: ${spec.gridSettings.size}px;\n`;
+    css += `  --grid-color: ${spec.gridSettings.color};\n`;
+    css += `  --grid-opacity: ${spec.gridSettings.opacity};\n`;
+    css += `}\n\n`;
+    css += `.grid-overlay {\n`;
+    css += `  background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),\n`;
+    css += `                    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);\n`;
+    css += `  background-size: var(--grid-size) var(--grid-size);\n`;
+    css += `  opacity: var(--grid-opacity);\n`;
+    css += `}\n\n`;
   }
 
   return css;
@@ -571,16 +649,13 @@ export function generatePDFContent(spec: DesignSpecification): string {
       }
 
       <div class="section">
-        <h2>CSS Export</h2>
-        <div class="code-block">${exportAsCSS(spec, {
-          format: "css",
-          includeColors: true,
-          includeTypography: true,
-          includeMeasurements: true,
-          includeMetadata: true,
-        })
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")}</div>
+        <h2>Summary</h2>
+        <ul>
+          <li><strong>Colors:</strong> ${spec.colors.length} extracted</li>
+          <li><strong>Typography:</strong> ${spec.typography.length} styles</li>
+          <li><strong>Measurements:</strong> ${spec.measurements.length} taken</li>
+          <li><strong>Generated:</strong> ${new Date(spec.createdAt).toLocaleString()}</li>
+        </ul>
       </div>
     </body>
     </html>
@@ -803,6 +878,141 @@ export const PrintableSpecification = ({
           ))}
         </div>
       )}
+
+      {/* Spacing Measurements Section */}
+      {spec.spacingMeasurements && spec.spacingMeasurements.length > 0 && (
+        <div style={{ marginBottom: "40px" }}>
+          <h2
+            style={{
+              fontSize: "20px",
+              fontWeight: "bold",
+              marginBottom: "20px",
+              paddingBottom: "10px",
+              borderBottom: "2px solid #eee",
+            }}
+          >
+            Spacing Measurements ({spec.spacingMeasurements.length} items)
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+              gap: "15px",
+            }}
+          >
+            {spec.spacingMeasurements.map((spacing, index) => (
+              <div
+                key={spacing.id}
+                style={{
+                  border: "2px solid #000",
+                  padding: "15px",
+                  borderRadius: "4px",
+                }}
+              >
+                <h3 style={{ margin: "0 0 10px 0", fontSize: "14px" }}>
+                  {spacing.label || `Spacing ${index + 1}`}
+                </h3>
+                <div style={{ fontSize: "12px" }}>
+                  <div>
+                    <strong>Type:</strong>{" "}
+                    {spacing.type.charAt(0).toUpperCase() +
+                      spacing.type.slice(1)}
+                  </div>
+                  <div>
+                    <strong>Width:</strong> {spacing.measurements.horizontal}px
+                  </div>
+                  <div>
+                    <strong>Height:</strong> {spacing.measurements.vertical}px
+                  </div>
+                  <div>
+                    <strong>Diagonal:</strong> {spacing.measurements.diagonal}px
+                  </div>
+                  <div>
+                    <strong>Points:</strong> {spacing.points.length} selected
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Grid Settings Section */}
+      {spec.gridSettings && spec.gridSettings.enabled && (
+        <div style={{ marginBottom: "40px" }}>
+          <h2
+            style={{
+              fontSize: "20px",
+              fontWeight: "bold",
+              marginBottom: "20px",
+              paddingBottom: "10px",
+              borderBottom: "2px solid #eee",
+            }}
+          >
+            Grid Configuration
+          </h2>
+          <div
+            style={{
+              border: "2px solid #000",
+              padding: "15px",
+              borderRadius: "4px",
+            }}
+          >
+            <div style={{ fontSize: "12px" }}>
+              <div>
+                <strong>Grid Size:</strong> {spec.gridSettings.size}px
+              </div>
+              <div>
+                <strong>Grid Color:</strong> {spec.gridSettings.color}
+              </div>
+              <div>
+                <strong>Opacity:</strong>{" "}
+                {Math.round(spec.gridSettings.opacity * 100)}%
+              </div>
+              <div>
+                <strong>Snap to Grid:</strong>{" "}
+                {spec.gridSettings.snapToGrid ? "Enabled" : "Disabled"}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Summary Section */}
+      <div style={{ marginBottom: "20px" }}>
+        <h2
+          style={{
+            fontSize: "20px",
+            fontWeight: "bold",
+            marginBottom: "15px",
+            paddingBottom: "10px",
+            borderBottom: "2px solid #eee",
+          }}
+        >
+          Summary
+        </h2>
+        <ul style={{ listStyle: "none", padding: "0" }}>
+          <li style={{ marginBottom: "5px" }}>
+            <strong>Colors:</strong> {spec.colors.length} extracted
+          </li>
+          <li style={{ marginBottom: "5px" }}>
+            <strong>Typography:</strong> {spec.typography.length} styles
+          </li>
+          <li style={{ marginBottom: "5px" }}>
+            <strong>Measurements:</strong> {spec.measurements.length} taken
+          </li>
+          {spec.spacingMeasurements && (
+            <li style={{ marginBottom: "5px" }}>
+              <strong>Spacing Measurements:</strong>{" "}
+              {spec.spacingMeasurements.length} areas
+            </li>
+          )}
+          <li style={{ marginBottom: "5px" }}>
+            <strong>Generated:</strong>{" "}
+            {new Date(spec.createdAt).toLocaleString()}
+          </li>
+        </ul>
+      </div>
     </div>
   );
 };
