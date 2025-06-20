@@ -17,6 +17,7 @@ import {
   DialogHeader,
 } from "@/components/retroui/Dialog";
 import ProjectStatusBadge from "@/components/projects/project-status-badge";
+import { useRouter } from "next/navigation";
 
 interface ProjectCardProps {
   project: Project;
@@ -24,6 +25,7 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project, onEdit }: ProjectCardProps) {
+  const router = useRouter();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteProjectMutation = useDeleteProject();
@@ -88,7 +90,7 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
           },
         });
         setIsDeleteDialogOpen(false);
-        window.location.href = "/dashboard/projects";
+        router.push("/dashboard/projects");
       } else {
         // Show persistent error toast and keep dialog open
         toast({

@@ -1,6 +1,7 @@
 "use client";
 
-import { PropsWithChildren, useEffect } from "react";
+import { PropsWithChildren } from "react";
+import Head from "next/head";
 //import { useRouter, usePathname } from "next/navigation";
 import ProtectedRoute from "@/components/auth/protected-route";
 import Header from "@/components/layout/header";
@@ -20,11 +21,6 @@ export default function DashboardLayout({
   // const router = useRouter();
   // const pathname = usePathname();
 
-  // Set document title
-  useEffect(() => {
-    document.title = `${title} | DesignHandoff`;
-  }, [title]);
-
   // Custom loading state for dashboard
   const loadingFallback = (
     <div className="min-h-screen bg-white dark:bg-[#121212] bg-[url('/grid-pattern.svg')] dark:bg-[url('/grid-pattern-dark.svg')]">
@@ -40,27 +36,32 @@ export default function DashboardLayout({
   );
 
   return (
-    <ProtectedRoute fallback={loadingFallback}>
-      <div className="min-h-screen bg-white dark:bg-[#121212] bg-[url('/grid-pattern.svg')] dark:bg-[url('/grid-pattern-dark.svg')]">
-        <Header />
-        <div className="container mx-auto py-8 px-4">
-          {/* Page title */}
-          <Text
-            as="h1"
-            className="text-3xl font-bold font-pixel text-black dark:text-white mb-8"
-          >
-            {title}
-          </Text>
+    <>
+      <Head>
+        <title>{title} | DesignHandoff</title>
+      </Head>
+      <ProtectedRoute fallback={loadingFallback}>
+        <div className="min-h-screen bg-white dark:bg-[#121212] bg-[url('/grid-pattern.svg')] dark:bg-[url('/grid-pattern-dark.svg')]">
+          <Header />
+          <div className="container mx-auto py-8 px-4">
+            {/* Page title */}
+            <Text
+              as="h1"
+              className="text-3xl font-bold font-pixel text-black dark:text-white mb-8"
+            >
+              {title}
+            </Text>
 
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Sidebar navigation */}
-            <Sidebar />
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Sidebar navigation */}
+              <Sidebar />
 
-            {/* Main content */}
-            <main className="flex-1">{children}</main>
+              {/* Main content */}
+              <main className="flex-1">{children}</main>
+            </div>
           </div>
         </div>
-      </div>
-    </ProtectedRoute>
+      </ProtectedRoute>
+    </>
   );
 }

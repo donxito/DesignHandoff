@@ -8,6 +8,7 @@ import {
   Point,
   ResizeHandle,
 } from "../types/asset-extraction";
+import { downloadFile } from "./download";
 
 // * Convert percentage-based bounds to pixel coordinates
 export function boundsToPixels(
@@ -317,12 +318,7 @@ export async function cropImageFromElement(
 
 // * Download a data URL as a file
 export function downloadAsset(dataUrl: string, filename: string): void {
-  const link = document.createElement("a");
-  link.href = dataUrl;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  downloadFile(dataUrl, filename);
 }
 
 // * Generate a filename for an asset

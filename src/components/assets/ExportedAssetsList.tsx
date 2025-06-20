@@ -31,6 +31,7 @@ import type {
   ExportFormat,
   ResolutionScale,
 } from "@/lib/types/assetExport";
+import { downloadFile } from "@/lib/utils/download";
 
 interface ExportedAssetsListProps {
   assets: ExportedAsset[];
@@ -104,12 +105,7 @@ export function ExportedAssetsList({
     });
 
   const handleDownload = (asset: ExportedAsset) => {
-    const link = document.createElement("a");
-    link.href = asset.file_url;
-    link.download = `${asset.name}.${asset.format}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadFile(asset.file_url, `${asset.name}.${asset.format}`);
   };
 
   const handleDelete = async (asset: ExportedAsset) => {

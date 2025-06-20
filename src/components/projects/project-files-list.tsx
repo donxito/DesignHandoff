@@ -41,6 +41,8 @@ import Image from "next/image";
 import DesignSpecViewer from "./design-spec-viewer";
 import { BatchPDFExport } from "./batch-pdf-export";
 
+import { downloadFromUrl } from "@/lib/utils/download";
+
 interface ProjectFilesListProps {
   projectId: string;
   projectName?: string;
@@ -114,16 +116,7 @@ export function ProjectFilesList({
   // * Handle file download
   const handleDownloadFile = async (file: DesignFile) => {
     try {
-      const response = await fetch(file.file_url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = file.file_name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      await downloadFromUrl(file.file_url, file.file_name);
 
       toast({
         message: "Download started",

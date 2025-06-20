@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { useAuthStore } from "@/lib/store";
 import { Text } from "@/components/retroui/Text";
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setUser } = useAuthStore();
   const [status, setStatus] = useState<"processing" | "success" | "error">(
     "processing"
@@ -17,120 +18,145 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the current URL to check for tokens in hash
-        const currentUrl = window.location.href;
-
         // Check if we have tokens in the URL hash (OAuth flow)
-        if (currentUrl.includes("#access_token=")) {
-          // Let Supabase handle the tokens from the URL
-          const { data, error } = await supabase.auth.getSession();
+        // Use the current window location for hash-based tokens
+        const hashParams = new URLSearchParams(
+          window.location.hash.substring(1)
+        );
+        const hasHashTokens = hashParams.has("access_token");
 
-          if (error) {
-            console.error("Error processing OAuth tokens:", error);
-            setErrorMessage(error.message);
-            setStatus("error");
-            // Wait a bit before redirecting to show error
-            setTimeout(() => router.push("/auth/login"), 3000);
-            return;
-          }
-
-          if (data.session) {
-            setUser(data.session.user);
-            setStatus("success");
-            // Short delay to show success message
-            setTimeout(() => router.push("/dashboard"), 1000);
-            return;
-          }
-        }
-
-        // Fallback: check for existing session
-        const { data, error } = await supabase.auth.getSession();
+        // Check if we have search params (email confirmation, password reset)
+        const code = searchParams.get("code");
+        const error = searchParams.get("error");
+        const errorDescription = searchParams.get("error_description");
 
         if (error) {
-          console.error("Error getting session:", error);
-          setErrorMessage(error.message);
+          console.error("Auth error:", error, errorDescription);
           setStatus("error");
-          setTimeout(() => router.push("/auth/login"), 3000);
+          setErrorMessage(errorDescription || error);
           return;
         }
 
-        if (data.session) {
-          setUser(data.session.user);
-          setStatus("success");
-          setTimeout(() => router.push("/dashboard"), 1000);
+        let session = null;
+
+        if (hasHashTokens || code) {
+          // Exchange the code for a session
+          const { data, error: authError } = await supabase.auth.getSession();
+
+          if (authError) {
+            console.error("Session error:", authError);
+            setStatus("error");
+            setErrorMessage(authError.message);
+            return;
+          }
+
+          session = data.session;
         } else {
-          setErrorMessage("No authentication session found");
+          // Check for existing session
+          const { data } = await supabase.auth.getSession();
+          session = data.session;
+        }
+
+        if (session?.user) {
+          console.log("User authenticated successfully");
+          setUser(session.user);
+          setStatus("success");
+
+          // Redirect to dashboard after a short delay
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 1500);
+        } else {
           setStatus("error");
-          setTimeout(() => router.push("/auth/login"), 2000);
+          setErrorMessage("No valid session found");
         }
       } catch (error) {
-        console.error("Unexpected error in auth callback:", error);
-        setErrorMessage("An unexpected error occurred during authentication");
+        console.error("Callback error:", error);
         setStatus("error");
-        setTimeout(() => router.push("/auth/login"), 3000);
+        setErrorMessage("Authentication failed");
       }
     };
 
     handleAuthCallback();
-  }, [router, setUser]);
+  }, [searchParams, setUser, router]);
 
-  const getStatusMessage = () => {
+  const getStatusDisplay = () => {
     switch (status) {
       case "processing":
-        return {
-          title: "Processing Your Login...",
-          description: "Please wait while we confirm your authentication.",
-          color: "text-blue-600 dark:text-blue-400",
-        };
+        return (
+          <div className="text-center">
+            <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <Text as="h2" className="font-pixel text-xl mb-2">
+              Completing authentication...
+            </Text>
+            <Text as="p" className="text-gray-600 dark:text-gray-400">
+              Please wait while we process your login
+            </Text>
+          </div>
+        );
       case "success":
-        return {
-          title: "Authentication Successful!",
-          description: "Redirecting you to your dashboard...",
-          color: "text-green-600 dark:text-green-400",
-        };
+        return (
+          <div className="text-center">
+            <div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-white text-sm">✓</span>
+            </div>
+            <Text as="h2" className="font-pixel text-xl mb-2 text-green-600">
+              Authentication successful!
+            </Text>
+            <Text as="p" className="text-gray-600 dark:text-gray-400">
+              Redirecting to your dashboard...
+            </Text>
+          </div>
+        );
       case "error":
-        return {
-          title: "Authentication Error",
-          description:
-            errorMessage || "Something went wrong. Redirecting to login...",
-          color: "text-red-600 dark:text-red-400",
-        };
+        return (
+          <div className="text-center">
+            <div className="h-8 w-8 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-white text-sm">✗</span>
+            </div>
+            <Text as="h2" className="font-pixel text-xl mb-2 text-red-600">
+              Authentication failed
+            </Text>
+            <Text as="p" className="text-gray-600 dark:text-gray-400 mb-4">
+              {errorMessage}
+            </Text>
+            <button
+              onClick={() => router.push("/auth/login")}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              Try again
+            </button>
+          </div>
+        );
     }
   };
 
-  const statusInfo = getStatusMessage();
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-[#121212] bg-grid-pattern">
-      <div className="text-center max-w-md">
-        <Text
-          as="h1"
-          className={`text-2xl font-bold mb-4 font-pixel ${statusInfo.color} animate-typing`}
-        >
-          {statusInfo.title}
-        </Text>
-        <Text
-          as="p"
-          className="text-gray-600 dark:text-gray-300 animate-typing mb-6"
-        >
-          {statusInfo.description}
-        </Text>
-
-        {/* Loading indicator */}
-        {status === "processing" && (
-          <div className="mt-6 h-1.5 bg-gradient-to-r from-yellow-400 via-pink-500 to-blue-500 animate-pulse rounded-full"></div>
-        )}
-
-        {/* Success indicator */}
-        {status === "success" && (
-          <div className="mt-6 h-1.5 bg-green-500 rounded-full"></div>
-        )}
-
-        {/* Error indicator */}
-        {status === "error" && (
-          <div className="mt-6 h-1.5 bg-red-500 rounded-full"></div>
-        )}
+    <div className="min-h-screen bg-white dark:bg-gray-900 bg-grid-pattern flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg border-2 border-black dark:border-white p-8">
+        {getStatusDisplay()}
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white dark:bg-gray-900 bg-grid-pattern flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg border-2 border-black dark:border-white p-8">
+            <div className="text-center">
+              <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <Text as="h2" className="font-pixel text-xl mb-2">
+                Loading...
+              </Text>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <AuthCallbackContent />
+    </Suspense>
   );
 }

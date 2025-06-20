@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/retroui/Select";
 import { Download, Loader2 } from "lucide-react";
+import { downloadFile } from "@/lib/utils/download";
 
 interface CropArea {
   x: number;
@@ -49,13 +50,8 @@ export function AssetExportDialog({
     setIsExporting(true);
 
     try {
-      // Create a simple download link
-      const link = document.createElement("a");
-      link.href = imageUrl;
-      link.download = `${assetName}.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Use the download utility
+      downloadFile(imageUrl, `${assetName}.${format}`);
 
       // Close after short delay
       setTimeout(() => {

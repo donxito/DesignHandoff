@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useAuthStore } from "@/lib/store";
@@ -25,6 +26,7 @@ export default function UserDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user: authUser, logout } = useAuthStore();
   const { data: user } = useCurrentUser();
+  const router = useRouter();
 
   // Ensure component is mounted
   useEffect(() => {
@@ -241,8 +243,8 @@ export default function UserDropdown() {
                   e.preventDefault();
                   e.stopPropagation();
 
-                  // Keep dropdown open during logout process
                   try {
+                    setIsOpen(false);
                     const { error } = await logout();
 
                     if (error) {
@@ -252,16 +254,12 @@ export default function UserDropdown() {
                       );
                     }
 
-                    // Clear any cached data
                     localStorage.clear();
-
-                    // Navigate to login
-                    window.location.href = "/auth/login";
+                    router.push("/");
                   } catch (error) {
                     console.error("Logout error:", error);
-                    // Force logout anyway
                     localStorage.clear();
-                    window.location.href = "/auth/login";
+                    router.push("/");
                   }
                 }}
                 className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400"

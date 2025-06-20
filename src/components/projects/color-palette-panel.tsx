@@ -12,6 +12,7 @@ import {
   generateColorVariations,
 } from "@/lib/utils/color-utils";
 import { Palette, Copy, Download, Trash2, Sparkles, Info } from "lucide-react";
+import { downloadJSON } from "@/lib/utils/download";
 
 interface ColorPalettePanelProps {
   colors: ColorInfo[];
@@ -127,27 +128,19 @@ export default function ColorPalettePanel({
   const exportPalette = () => {
     const paletteData = {
       colors: colors.map((color, index) => ({
-        id: index + 1,
+        id: index,
         hex: color.hex,
-        rgb: color.rgb,
-        hsl: color.hsl,
-        brightness: color.brightness,
+        rgb: `rgb(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b})`,
+        hsl: `hsl(${color.hsl.h}, ${color.hsl.s}%, ${color.hsl.l}%)`,
         contrast: color.contrast,
       })),
-      exportedAt: new Date().toISOString(),
-      totalColors: colors.length,
+      metadata: {
+        totalColors: colors.length,
+        exportedAt: new Date().toISOString(),
+      },
     };
 
-    const dataStr = JSON.stringify(paletteData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `color-palette-${Date.now()}.json`;
-    link.click();
-
-    URL.revokeObjectURL(url);
+    downloadJSON(paletteData, `color-palette-${Date.now()}`);
 
     toast({
       message: "Palette exported",
