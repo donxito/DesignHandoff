@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useAuthStore } from "@/lib/store";
 import { useCurrentUser } from "@/hooks/use-users-query";
 import { Avatar } from "@/components/retroui/Avatar";
@@ -21,10 +22,17 @@ import {
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user: authUser, logout } = useAuthStore();
   const { data: user } = useCurrentUser();
   const router = useRouter();
+
+  // Ensure component is mounted
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // * Close dropdown when clicking outside
   useEffect(() => {
@@ -96,156 +104,175 @@ export default function UserDropdown() {
         />
       </button>
 
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-900 border-3 border-black dark:border-white rounded-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)] z-50">
-          {/* User Info Header */}
-          <div className="p-4 border-b-2 border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <Avatar variant="primary" className="w-12 h-12">
-                {avatarUrl ? (
-                  <Avatar.Image
-                    src={avatarUrl}
-                    alt={user?.full_name || "User avatar"}
-                  />
-                ) : (
-                  <Avatar.Fallback className="bg-pink-200 text-pink-800">
-                    {user?.full_name
-                      ? user.full_name.charAt(0).toUpperCase()
-                      : user?.email?.charAt(0).toUpperCase() ||
-                        authUser.email?.charAt(0).toUpperCase() ||
-                        "?"}
-                  </Avatar.Fallback>
-                )}
-              </Avatar>
+      {/* Dropdown Menu - Using Portal */}
+      {isOpen &&
+        mounted &&
+        createPortal(
+          <div
+            className="fixed w-80 bg-white dark:bg-gray-900 border-3 border-black dark:border-white rounded-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)]"
+            style={{
+              position: "fixed",
+              top: dropdownRef.current
+                ? dropdownRef.current.getBoundingClientRect().bottom + 8
+                : 0,
+              right: dropdownRef.current
+                ? window.innerWidth -
+                  dropdownRef.current.getBoundingClientRect().right
+                : 0,
+              zIndex: 2147483646, // Just below dialog
+            }}
+          >
+            {/* User Info Header */}
+            <div className="p-4 border-b-2 border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3">
+                <Avatar variant="primary" className="w-12 h-12">
+                  {avatarUrl ? (
+                    <Avatar.Image
+                      src={avatarUrl}
+                      alt={user?.full_name || "User avatar"}
+                    />
+                  ) : (
+                    <Avatar.Fallback className="bg-pink-200 text-pink-800">
+                      {user?.full_name
+                        ? user.full_name.charAt(0).toUpperCase()
+                        : user?.email?.charAt(0).toUpperCase() ||
+                          authUser.email?.charAt(0).toUpperCase() ||
+                          "?"}
+                    </Avatar.Fallback>
+                  )}
+                </Avatar>
 
-              <div className="flex-1 min-w-0">
-                <Text
-                  as="h4"
-                  className="font-bold font-pixel text-black dark:text-white truncate"
+                <div className="flex-1 min-w-0">
+                  <Text
+                    as="h4"
+                    className="font-bold font-pixel text-black dark:text-white truncate"
+                  >
+                    {user?.full_name || "User"}
+                  </Text>
+                  <Text
+                    as="p"
+                    className="text-sm text-gray-600 dark:text-gray-300 truncate"
+                  >
+                    {user?.email || authUser.email}
+                  </Text>
+
+                  {/* Profile Completion */}
+                  <div className="flex items-center gap-2 mt-1">
+                    {profileCompletion === 100 ? (
+                      <Badge
+                        variant="success"
+                        className="flex items-center gap-1 text-xs"
+                      >
+                        <CheckCircle className="h-3 w-3" />
+                        Profile Complete
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="warning"
+                        className="flex items-center gap-1 text-xs"
+                      >
+                        <AlertCircle className="h-3 w-3" />
+                        {profileCompletion}% Complete
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Menu Items */}
+            <div className="p-2">
+              <Link href="/dashboard/settings/profile" className="no-underline">
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 >
-                  {user?.full_name || "User"}
-                </Text>
+                  <User className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <Text
+                      as="span"
+                      className="font-pixel text-black dark:text-white"
+                    >
+                      Profile Settings
+                    </Text>
+                    <Text
+                      as="p"
+                      className="text-xs text-gray-500 dark:text-gray-400"
+                    >
+                      Manage your profile
+                    </Text>
+                  </div>
+                </button>
+              </Link>
+
+              <Link href="/dashboard/settings/account" className="no-underline">
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <Settings className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <Text
+                      as="span"
+                      className="font-pixel text-black dark:text-white"
+                    >
+                      Account Settings
+                    </Text>
+                    <Text
+                      as="p"
+                      className="text-xs text-gray-500 dark:text-gray-400"
+                    >
+                      Security & preferences
+                    </Text>
+                  </div>
+                </button>
+              </Link>
+
+              <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400"
+              >
+                <LogOut className="h-4 w-4" />
+                <div>
+                  <Text as="span" className="font-pixel">
+                    Sign Out
+                  </Text>
+                  <Text as="p" className="text-xs">
+                    Sign out of your account
+                  </Text>
+                </div>
+              </button>
+            </div>
+
+            {/* Profile Completion Prompt */}
+            {profileCompletion < 100 && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800 rounded-b-lg">
                 <Text
                   as="p"
-                  className="text-sm text-gray-600 dark:text-gray-300 truncate"
+                  className="text-xs font-pixel text-blue-800 dark:text-blue-200 mb-2"
                 >
-                  {user?.email || authUser.email}
+                  Complete your profile for the best experience
                 </Text>
-
-                {/* Profile Completion */}
-                <div className="flex items-center gap-2 mt-1">
-                  {profileCompletion === 100 ? (
-                    <Badge
-                      variant="success"
-                      className="flex items-center gap-1 text-xs"
-                    >
-                      <CheckCircle className="h-3 w-3" />
-                      Profile Complete
-                    </Badge>
-                  ) : (
-                    <Badge
-                      variant="warning"
-                      className="flex items-center gap-1 text-xs"
-                    >
-                      <AlertCircle className="h-3 w-3" />
-                      {profileCompletion}% Complete
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Menu Items */}
-          <div className="p-2">
-            <Link href="/dashboard/settings/profile" className="no-underline">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                <User className="h-4 w-4 text-gray-500" />
-                <div>
-                  <Text
-                    as="span"
-                    className="font-pixel text-black dark:text-white"
-                  >
-                    Profile Settings
-                  </Text>
-                  <Text
-                    as="p"
-                    className="text-xs text-gray-500 dark:text-gray-400"
-                  >
-                    Manage your profile
-                  </Text>
-                </div>
-              </button>
-            </Link>
-
-            <Link href="/dashboard/settings/account" className="no-underline">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              >
-                <Settings className="h-4 w-4 text-gray-500" />
-                <div>
-                  <Text
-                    as="span"
-                    className="font-pixel text-black dark:text-white"
-                  >
-                    Account Settings
-                  </Text>
-                  <Text
-                    as="p"
-                    className="text-xs text-gray-500 dark:text-gray-400"
-                  >
-                    Security & preferences
-                  </Text>
-                </div>
-              </button>
-            </Link>
-
-            <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
-
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400"
-            >
-              <LogOut className="h-4 w-4" />
-              <div>
-                <Text as="span" className="font-pixel">
-                  Sign Out
-                </Text>
-                <Text as="p" className="text-xs">
-                  Sign out of your account
-                </Text>
-              </div>
-            </button>
-          </div>
-
-          {/* Profile Completion Prompt */}
-          {profileCompletion < 100 && (
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800 rounded-b-lg">
-              <Text
-                as="p"
-                className="text-xs font-pixel text-blue-800 dark:text-blue-200 mb-2"
-              >
-                Complete your profile for the best experience
-              </Text>
-              <Link href="/dashboard/settings/profile" className="no-underline">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="w-full text-xs"
-                  onClick={() => setIsOpen(false)}
+                <Link
+                  href="/dashboard/settings/profile"
+                  className="no-underline"
                 >
-                  Complete Profile
-                </Button>
-              </Link>
-            </div>
-          )}
-        </div>
-      )}
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Complete Profile
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

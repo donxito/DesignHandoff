@@ -2,15 +2,16 @@ import Link from "next/link";
 import { Button } from "@/components/retroui/Button";
 import { Badge } from "@/components/retroui/Badge";
 import { Avatar } from "@/components/retroui/Avatar";
-import { Text } from "@/components/retroui/Text";
 import {
   Dialog,
   DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogFooter,
+  DialogTitle,
 } from "@/components/retroui/Dialog";
 import RetroTerminal from "@/components/home/ui/RetroTerminal";
+import { PlayCircle, FileImage, Palette, Download } from "lucide-react";
 
 export default function HeroSection() {
   return (
@@ -26,7 +27,7 @@ export default function HeroSection() {
               <span className="px-2">New Release v1.0</span>
             </Badge>
 
-            <h1 className="text-5xl md:text-7xl font-bold font-pixel tracking-tight leading-none text-black dark:text-white text-adaptive mb-2">
+            <h1 className="text-5xl md:text-7xl font-bold font-pixel tracking-tight leading-none text-black dark:text-white mb-2">
               <span className="inline-block transform hover:rotate-2 transition-transform duration-300">
                 Design
               </span>
@@ -42,7 +43,7 @@ export default function HeroSection() {
               </span>
             </h1>
 
-            <p className="text-xl text-black dark:text-white text-adaptive max-w-lg">
+            <p className="text-xl text-black dark:text-white max-w-lg">
               <span className="font-bold">DesignHandoff</span> bridges the gap
               between design and development with a nostalgic twist — making
               collaboration fun again.
@@ -63,21 +64,81 @@ export default function HeroSection() {
               </Link>
 
               <Dialog>
-                <DialogTrigger className="inline-flex items-center justify-center rounded-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8 py-4 text-lg font-bold shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)] hover:scale-105 transition-transform">
-                  Watch Demo
+                <DialogTrigger className="inline-flex items-center justify-center rounded-md ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8 py-4 text-lg font-bold shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)] hover:scale-105 transition-transform backdrop-blur-lg">
+                  <PlayCircle className="w-5 h-5 mr-2" />
+                  See How It Works
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>Watch the Demo</DialogHeader>
-                  <div className="aspect-video bg-black relative overflow-hidden border-4 border-yellow-400">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Text className="text-white text-lg">
-                        Demo video placeholder
-                      </Text>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>How DesignHandoff Works</DialogTitle>
+                  </DialogHeader>
+
+                  {/* Interactive workflow demonstration */}
+                  <div className="bg-gray-900 border-4 border-yellow-400 rounded-lg p-6 min-h-[400px]">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
+                      {/* Step 1: Upload */}
+                      <div className="bg-gray-800 border-2 border-pink-500 rounded-lg p-4 text-center">
+                        <div className="w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <FileImage className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="font-pixel text-pink-400 mb-2">
+                          1. Upload
+                        </h3>
+                        <p className="text-white text-sm">
+                          Designer uploads design files to project
+                        </p>
+                        <div className="mt-3 w-full h-2 bg-gray-700 rounded">
+                          <div className="w-full h-2 bg-pink-500 rounded animate-pulse"></div>
+                        </div>
+                      </div>
+
+                      {/* Step 2: Extract */}
+                      <div className="bg-gray-800 border-2 border-yellow-500 rounded-lg p-4 text-center">
+                        <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Palette className="w-8 h-8 text-black" />
+                        </div>
+                        <h3 className="font-pixel text-yellow-400 mb-2">
+                          2. Extract
+                        </h3>
+                        <p className="text-white text-sm">
+                          Auto-extract colors, fonts, measurements
+                        </p>
+                        <div className="mt-3 flex gap-1 justify-center">
+                          <div className="w-3 h-3 bg-red-500 rounded animate-bounce"></div>
+                          <div className="w-3 h-3 bg-blue-500 rounded animate-bounce delay-100"></div>
+                          <div className="w-3 h-3 bg-green-500 rounded animate-bounce delay-200"></div>
+                        </div>
+                      </div>
+
+                      {/* Step 3: Handoff */}
+                      <div className="bg-gray-800 border-2 border-blue-500 rounded-lg p-4 text-center">
+                        <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Download className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="font-pixel text-blue-400 mb-2">
+                          3. Handoff
+                        </h3>
+                        <p className="text-white text-sm">
+                          Developer gets specs and assets instantly
+                        </p>
+                        <div className="mt-3 w-full h-2 bg-gray-700 rounded">
+                          <div className="w-3/4 h-2 bg-blue-500 rounded animate-pulse"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom message */}
+                    <div className="text-center mt-6">
+                      <p className="font-pixel text-green-400 text-lg">
+                        70% Faster Handoff Process!
+                      </p>
                     </div>
                   </div>
+
                   <DialogFooter>
-                    <Button variant="outline">Close</Button>
-                    <Button variant="primary">Sign Up Now</Button>
+                    <Link href="/auth/signup" className="no-underline">
+                      <Button variant="primary">Start Your Project →</Button>
+                    </Link>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

@@ -11,7 +11,7 @@ import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
 import { Input } from "@/components/retroui/Input";
-import { Alert } from "@/components/retroui/Alert";
+import { Alert, AlertDescription } from "@/components/retroui/Alert";
 import SocialLogin from "./social-login";
 
 export default function LoginForm() {
@@ -85,9 +85,9 @@ export default function LoginForm() {
 
         <Card.Content className="px-8 py-6">
           {error && (
-            <Alert status="error" className="mb-6">
-              <Alert.Title>Error</Alert.Title>
-              <Alert.Description>{error}</Alert.Description>
+            <Alert variant="destructive" className="mb-6">
+              <h4 className="font-medium mb-1">Error</h4>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 

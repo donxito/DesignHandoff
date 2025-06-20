@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { useUIStore, useAuthStore } from "@/lib/store";
+import { useAuthStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/retroui/toast";
 
-// * Create a query clients
+// Create a query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -19,11 +19,10 @@ const queryClient = new QueryClient({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const { setUser, setLoading } = useAuthStore();
-  const { setTheme } = useUIStore();
 
-  // * Initialize auth state
+  // Initialize auth state
   useEffect(() => {
-    // check for existing session on mount
+    // Check for existing session on mount
     const checkUser = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -36,7 +35,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     };
     checkUser();
 
-    // * Subscribe to auth changes
+    // Subscribe to auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -48,27 +47,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
     };
   }, [setUser, setLoading]);
-
-  // * Initialize theme from localStorage or system preference
-  useEffect(() => {
-    // only on the client side
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-
-    const initialTheme =
-      savedTheme === "dark" || (!savedTheme && prefersDark) ? "dark" : "light";
-
-    setTheme(initialTheme);
-
-    // Apply theme to document
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [setTheme]);
 
   return (
     <QueryClientProvider client={queryClient}>

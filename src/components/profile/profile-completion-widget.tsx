@@ -164,7 +164,7 @@ export function ProfileCompletionWidget({
       </div>
 
       <div className="mb-4">
-        <Progress value={percentage} max={100} variant="primary" />
+        <Progress value={percentage} />
       </div>
 
       <div className="space-y-3 mb-6">

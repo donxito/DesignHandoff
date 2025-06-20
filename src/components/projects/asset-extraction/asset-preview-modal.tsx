@@ -253,6 +253,8 @@ export default function AssetPreviewModal({
                   <Image
                     src={previewDataUrl}
                     alt="Asset preview"
+                    width={dimensions.width || 100}
+                    height={dimensions.height || 100}
                     className="max-w-full max-h-full object-contain border-2 border-black dark:border-white rounded"
                     style={{
                       imageRendering:

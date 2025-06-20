@@ -24,9 +24,9 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#121212] overflow-x-hidden relative">
+    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden relative">
       {/* Background grid pattern */}
-      <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] dark:bg-[url('/grid-pattern-dark.svg')] opacity-40 pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-line-grid opacity-60 pointer-events-none z-0"></div>
 
       {/* Animated decorative elements */}
       <div

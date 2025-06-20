@@ -4,31 +4,26 @@ import Link from "next/link";
 import ThemeToggle from "./theme-toggle";
 import UserDropdown from "./user-dropdown";
 import { useAuthStore } from "@/lib/store";
-// RetroUI components
 import { Button } from "@/components/retroui/Button";
-import { Text } from "@/components/retroui/Text";
 
 export default function Header() {
   const { isAuthenticated } = useAuthStore();
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b-3 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)] relative z-10">
-      {/* Decorative  bar */}
+      {/* Decorative bar */}
       <div className="h-1.5 bg-gradient-to-r from-yellow-400 via-pink-500 to-blue-500"></div>
 
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center">
             <Link href="/" className="no-underline flex items-center group">
-              <div className="w-10 h-10 bg-pink-500 border-3 border-black rounded-full flex items-center justify-center mr-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] group-hover:translate-x-[1px] group-hover:translate-y-[1px] transition-all">
+              <div className="w-10 h-10 bg-pink-500 border-3 border-black dark:border-white rounded-full flex items-center justify-center mr-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.5)] group-hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:group-hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.5)] group-hover:translate-x-[1px] group-hover:translate-y-[1px] transition-all">
                 <span className="text-white font-bold text-lg">D</span>
               </div>
-              <Text
-                as="h1"
-                className="text-black dark:text-white text-2xl font-bold tracking-tight"
-              >
+              <h1 className="text-black dark:text-white text-2xl font-bold tracking-tight">
                 DesignHandoff
-              </Text>
+              </h1>
             </Link>
           </div>
 
