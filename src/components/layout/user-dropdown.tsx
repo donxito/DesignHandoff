@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useAuthStore } from "@/lib/store";
@@ -26,7 +25,6 @@ export default function UserDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user: authUser, logout } = useAuthStore();
   const { data: user } = useCurrentUser();
-  const router = useRouter();
 
   // Ensure component is mounted
   useEffect(() => {
@@ -59,25 +57,6 @@ export default function UserDropdown() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
-
-  const handleLogout = async () => {
-    try {
-      setIsOpen(false); // Close dropdown immediately
-      const { error } = await logout();
-
-      if (error) {
-        console.warn("Logout completed with warning:", error.message);
-        // Still navigate away since local state is cleared
-      }
-
-      // Force navigation to login page
-      window.location.href = "/auth/login";
-    } catch (error) {
-      console.error("Error during logout:", error);
-      // Even if there's an error, navigate away since we cleared local state
-      window.location.href = "/auth/login";
-    }
-  };
 
   // * Calculate profile completion
   const getProfileCompletion = () => {
