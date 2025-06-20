@@ -76,16 +76,12 @@ export default function ProtectedRoute({
     return fallback ? (
       <>{fallback}</>
     ) : (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="p-4 max-w-sm w-full">
-          <div className="animate-pulse flex space-x-4">
-            <div className="flex-1 space-y-4 py-1">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-              </div>
-            </div>
+      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-900">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-32 mx-auto animate-pulse"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-24 mx-auto animate-pulse"></div>
           </div>
         </div>
       </div>

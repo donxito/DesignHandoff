@@ -34,6 +34,7 @@ import {
   ProjectTeamSection,
   ProjectCommentsSection,
 } from "@/components/projects/sections";
+import { ProjectDetailsSkeleton } from "@/components/retroui/skeletons";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
@@ -64,12 +65,8 @@ export default function ProjectDetailPage() {
   // * Loading state
   if (isLoading) {
     return (
-      <DashboardLayout title="Project Details">
-        <div className="animate-pulse space-y-6">
-          <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-lg w-1/4"></div>
-          <div className="h-60 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
-          <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
-        </div>
+      <DashboardLayout title="Loading Project...">
+        <ProjectDetailsSkeleton />
       </DashboardLayout>
     );
   }

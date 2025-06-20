@@ -26,10 +26,10 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-white dark:bg-[#121212] bg-[url('/grid-pattern.svg')] dark:bg-[url('/grid-pattern-dark.svg')]">
       <Header />
       <main className="container mx-auto py-8 px-4">
-        <div className="animate-pulse space-y-6">
-          <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-lg w-1/4"></div>
-          <div className="h-60 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
-          <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
+        <div className="space-y-6">
+          <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded-lg w-1/4 animate-pulse shimmer"></div>
+          <div className="h-60 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse shimmer"></div>
+          <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse shimmer"></div>
         </div>
       </main>
     </div>
