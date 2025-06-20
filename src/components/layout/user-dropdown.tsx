@@ -37,24 +37,46 @@ export default function UserDropdown() {
   // * Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
+      const target = event.target as Node;
+
+      // Check if click is outside the dropdown trigger button
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+        // Also check if click is not on the portal dropdown content
+        const dropdownContent = document.querySelector(
+          "[data-dropdown-content]"
+        );
+        if (!dropdownContent || !dropdownContent.contains(target)) {
+          setIsOpen(false);
+        }
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [isOpen]);
 
   const handleLogout = async () => {
-    await logout();
-    router.push("/auth/login");
-    setIsOpen(false);
+    try {
+      setIsOpen(false); // Close dropdown immediately
+      const { error } = await logout();
+
+      if (error) {
+        console.warn("Logout completed with warning:", error.message);
+        // Still navigate away since local state is cleared
+      }
+
+      // Force navigation to login page
+      window.location.href = "/auth/login";
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // Even if there's an error, navigate away since we cleared local state
+      window.location.href = "/auth/login";
+    }
   };
 
   // * Calculate profile completion
@@ -109,6 +131,7 @@ export default function UserDropdown() {
         mounted &&
         createPortal(
           <div
+            data-dropdown-content
             className="fixed w-80 bg-white dark:bg-gray-900 border-3 border-black dark:border-white rounded-lg shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)]"
             style={{
               position: "fixed",
@@ -120,6 +143,10 @@ export default function UserDropdown() {
                   dropdownRef.current.getBoundingClientRect().right
                 : 0,
               zIndex: 2147483646, // Just below dialog
+            }}
+            onClick={(e) => {
+              // Prevent dropdown from closing when clicking inside
+              e.stopPropagation();
             }}
           >
             {/* User Info Header */}
@@ -231,7 +258,33 @@ export default function UserDropdown() {
               <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
 
               <button
-                onClick={handleLogout}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  // Keep dropdown open during logout process
+                  try {
+                    const { error } = await logout();
+
+                    if (error) {
+                      console.warn(
+                        "Logout completed with warning:",
+                        error.message
+                      );
+                    }
+
+                    // Clear any cached data
+                    localStorage.clear();
+
+                    // Navigate to login
+                    window.location.href = "/auth/login";
+                  } catch (error) {
+                    console.error("Logout error:", error);
+                    // Force logout anyway
+                    localStorage.clear();
+                    window.location.href = "/auth/login";
+                  }
+                }}
                 className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400"
               >
                 <LogOut className="h-4 w-4" />

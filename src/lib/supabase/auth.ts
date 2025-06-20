@@ -1,4 +1,5 @@
 import { supabase } from "./client";
+import { getAuthCallbackUrl, getPasswordResetUrl } from "../utils/auth-utils";
 
 export type SignUpData = {
   email: string;
@@ -41,7 +42,7 @@ export const signInWithProvider = async (provider: Provider) => {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: getAuthCallbackUrl(),
     },
   });
   return { data, error };
@@ -65,7 +66,7 @@ export const getCurrentUser = async () => {
 // reset password
 export const resetPassword = async (email: string) => {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/auth/reset-password`,
+    redirectTo: getPasswordResetUrl(),
   });
   return { data, error };
 };
