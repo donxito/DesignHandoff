@@ -97,21 +97,37 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     set({ loading: true });
     try {
+      // Sign out from Supabase
       const { error } = await signOut();
-      if (error) {
-        set({ error: error.message, loading: false });
-        return { error };
-      }
 
+      // Always clear the local state, even if there's an error
+      // This ensures the UI shows as logged out
       set({
         user: null,
         isAuthenticated: false,
         loading: false,
+        error: null,
       });
+
+      if (error) {
+        console.warn("Logout warning:", error.message);
+        // Don't treat as fatal error since we've already cleared local state
+        return { error };
+      }
+
       return {};
     } catch (error) {
       const err = error as Error;
-      set({ error: err.message, loading: false });
+      console.error("Logout error:", err.message);
+
+      // Still clear local state to ensure UI consistency
+      set({
+        user: null,
+        isAuthenticated: false,
+        loading: false,
+        error: err.message,
+      });
+
       return { error: err };
     }
   },
