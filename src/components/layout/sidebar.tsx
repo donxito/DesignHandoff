@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Home, FolderKanban, Upload, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Text } from "@/components/retroui/Text";
 
 type NavItem = {
   label: string;
@@ -47,28 +46,39 @@ export default function Sidebar() {
     <aside className="w-full md:w-64 md:min-h-[calc(100vh-5rem)] border-r-3 border-black dark:border-white md:pr-6">
       <nav className="sticky top-24 space-y-2 py-4">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+          const isActive =
+            pathname === item.href || pathname?.startsWith(`${item.href}/`);
           const Icon = item.icon;
-          
+
           return (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              className="no-underline"
-            >
+            <Link key={item.href} href={item.href} className="no-underline">
               <div
                 className={cn(
                   "flex items-center px-4 py-3 rounded-lg transition-all",
                   "border-3 border-black dark:border-white",
                   isActive
-                    ? "bg-black dark:bg-white text-white dark:text-black shadow-none translate-x-[2px] translate-y-[2px]"
-                    : "bg-white dark:bg-gray-900 text-black dark:text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.5)] hover:translate-x-[2px] hover:translate-y-[2px]"
+                    ? "bg-black dark:bg-white shadow-none translate-x-[2px] translate-y-[2px]"
+                    : "bg-white dark:bg-gray-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.5)] hover:translate-x-[2px] hover:translate-y-[2px]"
                 )}
               >
-                <Icon className="h-5 w-5 mr-3" />
-                <Text as="span" className="font-pixel">
+                <Icon
+                  className={cn(
+                    "h-5 w-5 mr-3",
+                    isActive
+                      ? "text-white dark:text-black"
+                      : "text-black dark:text-white"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "font-bold",
+                    isActive
+                      ? "text-white dark:text-black"
+                      : "text-black dark:text-white"
+                  )}
+                >
                   {item.label}
-                </Text>
+                </span>
               </div>
             </Link>
           );

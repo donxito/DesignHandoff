@@ -107,6 +107,8 @@ export async function GET(
         role: "owner",
         joined_at: null,
         invited_by: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         user: {
           id: rawProject.owner.id,
           full_name: rawProject.owner.full_name,
@@ -126,6 +128,8 @@ export async function GET(
         role: member.role as ProjectMember["role"],
         joined_at: member.joined_at,
         invited_by: member.invited_by,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         user: member.user
           ? {
               id: member.user.id,

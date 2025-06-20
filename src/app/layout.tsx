@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import Script from "next/script";
 
 // Load Inter font for body text
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -16,6 +15,23 @@ export const metadata: Metadata = {
   },
 };
 
+// Simple theme initialization script to prevent flash
+const themeScript = `
+(function() {
+  try {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    if (shouldUseDark) {
+      document.documentElement.classList.add('dark');
+    }
+  } catch (e) {
+    // Silent fallback to light mode
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,17 +40,20 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <head>
-        {/* Theme initialization script will be loaded with Script component */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <Script
-        src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js"
-        strategy="afterInteractive"
-      />
       <body
-        className={`${inter.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${inter.variable} font-sans antialiased bg-white dark:bg-gray-900 bg-grid-pattern text-black dark:text-white`}
         suppressHydrationWarning={true}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {/* Main content area with grid pattern background */}
+          <main className="flex-1 bg-line-grid">
+            <div className="bg-white/80 dark:bg-gray-900/80 min-h-full">
+              {children}
+            </div>
+          </main>
+        </Providers>
       </body>
     </html>
   );

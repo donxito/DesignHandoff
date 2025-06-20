@@ -10,7 +10,7 @@ import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
 import { Input } from "@/components/retroui/Input";
-import { Alert } from "@/components/retroui/Alert";
+import { Alert, AlertDescription } from "@/components/retroui/Alert";
 
 // Schema for the reset password form
 const resetSchema = z.object({
@@ -89,14 +89,17 @@ export default function RequestResetForm() {
 
         <Card.Content className="px-8 py-6">
           {error && (
-            <Alert status="error" className="mb-6">
-              <Alert.Description>{error}</Alert.Description>
+            <Alert variant="destructive" className="mb-6">
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {success && (
-            <Alert status="success" className="mb-6">
-              <Alert.Description>{success}</Alert.Description>
+            <Alert
+              variant="default"
+              className="mb-6 border-green-500 text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-300"
+            >
+              <AlertDescription>{success}</AlertDescription>
             </Alert>
           )}
 

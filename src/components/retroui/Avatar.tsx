@@ -3,7 +3,8 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar";
 
 import { cn } from "@/lib/utils";
 
-interface AvatarProps extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> {
+interface AvatarProps
+  extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> {
   variant?: "default" | "outline" | "solid" | "primary" | "secondary";
 }
 
@@ -12,11 +13,16 @@ const Avatar = React.forwardRef<
   AvatarProps
 >(({ className, variant = "default", ...props }, ref) => {
   const variantStyles = {
-    default: "border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]",
-    outline: "border-3 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]",
-    solid: "border-3 border-black bg-black shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]",
-    primary: "border-3 border-black bg-pink-100 shadow-[3px_3px_0px_0px_rgba(236,72,153,1)]",
-    secondary: "border-3 border-black bg-blue-100 shadow-[3px_3px_0px_0px_rgba(59,130,246,1)]",
+    default:
+      "border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]",
+    outline:
+      "border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]",
+    solid:
+      "border-3 border-black dark:border-white bg-black dark:bg-white shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.8)]",
+    primary:
+      "border-3 border-black dark:border-white bg-pink-100 dark:bg-pink-900 shadow-[3px_3px_0px_0px_rgba(236,72,153,1)] dark:shadow-[3px_3px_0px_0px_rgba(236,72,153,0.8)]",
+    secondary:
+      "border-3 border-black dark:border-white bg-blue-100 dark:bg-blue-900 shadow-[3px_3px_0px_0px_rgba(59,130,246,1)] dark:shadow-[3px_3px_0px_0px_rgba(59,130,246,0.8)]",
   };
 
   return (
@@ -25,7 +31,7 @@ const Avatar = React.forwardRef<
       className={cn(
         "relative flex h-14 w-14 rounded-full overflow-hidden",
         variantStyles[variant],
-        className,
+        className
       )}
       {...props}
     />
@@ -52,8 +58,8 @@ const AvatarFallback = React.forwardRef<
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-yellow-300 text-black font-bold",
-      className,
+      "flex h-full w-full items-center justify-center rounded-full bg-yellow-300 dark:bg-yellow-600 text-black dark:text-white font-bold",
+      className
     )}
     {...props}
   />

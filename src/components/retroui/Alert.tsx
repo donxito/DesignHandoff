@@ -1,23 +1,17 @@
-import { HTMLAttributes } from "react";
+import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react";
-
 import { cn } from "@/lib/utils";
-import { Text } from "@/components/retroui/Text";
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border-3 p-5 mb-4",
+  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
   {
     variants: {
       variant: {
-        default: "bg-white dark:bg-gray-900 text-black dark:text-white border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)]",
-        solid: "bg-black text-white border-white shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)] dark:bg-white dark:text-black dark:border-black dark:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
-      },
-      status: {
-        error: "bg-red-50 dark:bg-red-950 border-red-500 shadow-[4px_4px_0px_0px_rgba(239,68,68,1)] dark:shadow-[4px_4px_0px_0px_rgba(239,68,68,0.5)]",
-        success: "bg-green-50 dark:bg-green-950 border-green-500 shadow-[4px_4px_0px_0px_rgba(34,197,94,1)] dark:shadow-[4px_4px_0px_0px_rgba(34,197,94,0.5)]",
-        warning: "bg-yellow-50 dark:bg-yellow-950 border-yellow-500 shadow-[4px_4px_0px_0px_rgba(234,179,8,1)] dark:shadow-[4px_4px_0px_0px_rgba(234,179,8,0.5)]",
-        info: "bg-blue-50 dark:bg-blue-950 border-blue-500 shadow-[4px_4px_0px_0px_rgba(59,130,246,1)] dark:shadow-[4px_4px_0px_0px_rgba(59,130,246,0.5)]",
+        default: "bg-background text-foreground",
+        destructive:
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+        success:
+          "border-green-500/50 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950",
       },
     },
     defaultVariants: {
@@ -26,57 +20,67 @@ const alertVariants = cva(
   }
 );
 
+// Legacy status to variant mapping
+const statusToVariant = {
+  error: "destructive",
+  success: "success",
+  warning: "default",
+  info: "default",
+} as const;
+
+type LegacyStatus = keyof typeof statusToVariant;
+
 interface AlertProps
-  extends HTMLAttributes<HTMLDivElement>,
+  extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof alertVariants> {
-  status?: "error" | "success" | "warning" | "info";
+  status?: LegacyStatus; // Legacy prop for backward compatibility
 }
 
-const Alert = ({ className, variant, status, ...props }: AlertProps) => {
-  const StatusIcon = status ? {
-    error: XCircle,
-    success: CheckCircle,
-    warning: AlertTriangle,
-    info: Info
-  }[status] : null;
-  
-  return (
-    <div
-      role="alert"
-      className={cn(alertVariants({ variant, status }), className)}
-      {...props}
-    >
-      {StatusIcon && (
-        <div className="absolute top-3 right-3">
-          <StatusIcon className={cn(
-            "h-5 w-5",
-            status === "error" && "text-red-500",
-            status === "success" && "text-green-500",
-            status === "warning" && "text-yellow-500",
-            status === "info" && "text-blue-500"
-          )} />
-        </div>
-      )}
-      {props.children}
-    </div>
-  );
-};
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
+  ({ className, variant, status, ...props }, ref) => {
+    // Use status prop if provided (legacy), otherwise use variant
+    const computedVariant = status ? statusToVariant[status] : variant;
 
+    return (
+      <div
+        ref={ref}
+        role="alert"
+        className={cn(alertVariants({ variant: computedVariant }), className)}
+        {...props}
+      />
+    );
+  }
+);
 Alert.displayName = "Alert";
 
-const AlertTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-  <Text as="h5" size="lg" weight="bold" className={cn("mb-1", className)} {...props} />
-);
+const AlertTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h5
+    ref={ref}
+    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    {...props}
+  />
+));
+AlertTitle.displayName = "AlertTitle";
 
-const AlertDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <Text as="p" size="base" className={cn("", className)} {...props} />
-);
-
+const AlertDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    {...props}
+  />
+));
 AlertDescription.displayName = "AlertDescription";
 
-const AlertComponent = Object.assign(Alert, {
+// Add compound component support for legacy API
+const AlertWithCompounds = Object.assign(Alert, {
   Title: AlertTitle,
   Description: AlertDescription,
 });
 
-export { AlertComponent as Alert };
+export { AlertWithCompounds as Alert, AlertTitle, AlertDescription };

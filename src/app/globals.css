@@ -1,224 +1,136 @@
 @import "tailwindcss";
 
-/* Color System - All colors used in the application */
+/* Configure dark mode for Tailwind CSS v4 */
+@variant dark (&:where(.dark, .dark *));
+
+/* CSS Variables for Theme System */
 :root {
-  /* Background colors */
-  --bg-primary-light: white;
-  --bg-secondary-light: #f8f9fa;
-  --bg-tertiary-light: #e9ecef;
-  
-  --bg-primary-dark: #121212;
-  --bg-secondary-dark: #1e1e1e;
-  --bg-tertiary-dark: #2a2a2a;
-  
-  /* Text colors */
-  --text-primary-light: #212529;
-  --text-secondary-light: #495057;
-  --text-muted-light: #6c757d;
-  
-  --text-primary-dark: #f8f9fa;
-  --text-secondary-dark: #e9ecef;
-  --text-muted-dark: #adb5bd;
-  
-  /* Border colors */
-  --border-light: #000000;
-  --border-dark: #ffffff;
-  
-  /* Accent colors - consistent in both modes */
-  --accent-pink: #ec4899;
-  --accent-blue: #3b82f6;
-  --accent-yellow: #eab308;
-  --accent-green: #22c55e;
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222.2 84% 4.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
 }
 
 /* Base styles */
-html, body {
-  background-color: var(--bg-primary-light);
-  color: var(--text-primary-light);
-  transition: all 0.3s ease;
+html {
+  scroll-behavior: smooth;
 }
 
-/* Light mode explicit styles */
-:root:not(.dark) {
-  color-scheme: light;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-:root:not(.dark) body {
-  background-color: var(--bg-primary-light);
-  color: var(--text-primary-light);
+/* Smooth transitions for theme changes */
+*, *::before, *::after {
+  transition: 
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
-/* Dark mode styles - dramatic contrast */
-.dark {
-  color-scheme: dark;
+/* ===== RETROUI RETRO SHADOWS ===== */
+/* Light mode shadows */
+.retro-shadow {
+  box-shadow: 4px 4px 0px hsl(var(--foreground));
 }
 
-.dark html, .dark body {
-  background-color: var(--bg-primary-dark);
-  color: var(--text-primary-dark);
+.retro-shadow-sm {
+  box-shadow: 2px 2px 0px hsl(var(--foreground));
 }
 
-/* Text color utility classes */
-.text-adaptive {
-  color: var(--text-primary-light);
+.retro-shadow-lg {
+  box-shadow: 6px 6px 0px hsl(var(--foreground));
 }
 
-.dark .text-adaptive {
-  color: var(--text-primary-dark);
+/* Dark mode shadows */
+.dark .retro-shadow {
+  box-shadow: 4px 4px 0px hsl(var(--foreground));
 }
 
-/* Ensure white text is never used in light mode */
-:root:not(.dark) .text-white {
-  color: var(--text-primary-light) !important;
+.dark .retro-shadow-sm {
+  box-shadow: 2px 2px 0px hsl(var(--foreground));
 }
 
-/* Ensure dark text is never used in dark mode */
-.dark .text-black {
-  color: var(--text-primary-dark) !important;
+.dark .retro-shadow-lg {
+  box-shadow: 6px 6px 0px hsl(var(--foreground));
 }
 
-/* Dashboard and content pages */
-.dark .bg-neutral-100,
-.dark .bg-neutral-200 {
-  background-color: #121212 !important;
+/* Hover effects for retro shadows */
+.retro-shadow-hover:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px hsl(var(--foreground));
+  transition: all 0.1s ease;
 }
 
-.dark .bg-neutral-900 {
-  background-color: #121212 !important;
+.retro-shadow-hover:hover .retro-shadow {
+  box-shadow: 2px 2px 0px hsl(var(--foreground));
 }
 
-/* Text colors */
-.dark .text-neutral-800,
-.dark .text-neutral-900 {
-  color: #f8f9fa !important;
+.dark .retro-shadow-hover:hover .retro-shadow {
+  box-shadow: 2px 2px 0px hsl(var(--foreground));
 }
 
-/* Border colors */
-.dark .border-neutral-900 {
-  border-color: #f8f9fa !important;
+.retro-shadow-hover:hover .retro-shadow-sm {
+  box-shadow: 1px 1px 0px hsl(var(--foreground));
 }
 
-/* Card styles */
-.dark .card {
-  background-color: #1e1e1e !important;
-  border-color: #f8f9fa !important;
+.dark .retro-shadow-hover:hover .retro-shadow-sm {
+  box-shadow: 1px 1px 0px hsl(var(--foreground));
 }
 
-/* Form elements */
-.dark input,
-.dark select,
-.dark textarea {
-  background-color: #2a2a2a !important;
-  color: #f8f9fa !important;
-  border-color: #f8f9fa !important;
-}
-
-/* RetroUI component styles - Light Mode */
-.retroui-card {
-  background-color: var(--bg-primary-light);
-  border: 3px solid var(--border-light);
-  box-shadow: 5px 5px 0px 0px rgba(0,0,0,1);
-  color: var(--text-primary-light);
-  transition: all 0.3s ease;
-}
-
-.retroui-button {
-  background-color: var(--bg-primary-light);
-  color: var(--text-primary-light);
-  border: 3px solid var(--border-light);
-  box-shadow: 3px 3px 0px 0px rgba(0,0,0,1);
-  transition: all 0.3s ease;
-}
-
-.retroui-input {
-  background-color: var(--bg-primary-light);
-  color: var(--text-primary-light);
-  border: 3px solid var(--border-light);
-  transition: all 0.3s ease;
-}
-
-/* RetroUI component styles - Dark Mode */
-.dark .retroui-card {
-  background-color: var(--bg-tertiary-dark);
-  border: 3px solid var(--border-dark);
-  box-shadow: 5px 5px 0px 0px rgba(248,249,250,0.7);
-  color: var(--text-primary-dark);
-}
-
-.dark .retroui-button {
-  background-color: var(--bg-tertiary-dark);
-  color: var(--text-primary-dark);
-  border: 3px solid var(--border-dark);
-  box-shadow: 3px 3px 0px 0px rgba(248,249,250,0.7);
-}
-
-.dark .retroui-input {
-  background-color: var(--bg-tertiary-dark);
-  color: var(--text-primary-dark);
-  border: 3px solid var(--border-dark);
-}
-
-/* Force dark mode overrides for existing classes */
-.dark .bg-white {
-  background-color: #2a2a2a !important;
-}
-
-.dark .text-black {
-  color: #f8f9fa !important;
-}
-
-.dark .border-black {
-  border-color: #f8f9fa !important;
-}
-
-.dark .shadow-\[3px_3px_0px_0px_rgba\(0\,0\,0\,1\)\] {
-  box-shadow: 3px 3px 0px 0px rgba(248,249,250,0.7) !important;
-}
-
-/* Additional dark mode overrides */
-.dark .bg-\[\#f5f5f5\] {
-  background-color: #121212 !important;
-}
-
-.dark .bg-\[\#ffffff\] {
-  background-color: #2a2a2a !important;
-}
-
-.dark input, .dark select, .dark textarea {
-  background-color: #2a2a2a !important;
-  color: #f8f9fa !important;
-  border-color: #f8f9fa !important;
-}
-
-/* Accent colors in dark mode */
-.dark .text-blue-600 {
-  color: #90caf9 !important; /* Lighter blue for dark mode */
-}
-
-.dark .text-pink-500 {
-  color: #f48fb1 !important; /* Lighter pink for dark mode */
-}
-
-.dark .text-purple-500 {
-  color: #ce93d8 !important; /* Lighter purple for dark mode */
-}
-
-.dark .text-green-500 {
-  color: #a5d6a7 !important; /* Lighter green for dark mode */
-}
-
-/* Animations */
+/* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.5s ease-in-out;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Theme transition */
-/* Typing animation for RetroTerminal */
+/* Typing animation styles */
 @keyframes typing {
   from { width: 0; }
   to { width: 100%; }
@@ -226,25 +138,23 @@ html, body {
 
 @keyframes blink-caret {
   from, to { border-color: transparent; }
-  50% { border-color: #4ade80; }
+  50% { border-color: currentColor; }
 }
 
 .typing-animation {
-  position: relative;
-  height: 100%;
-  padding-right: 0.5em;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .typing-animation p {
-  position: absolute;
-  margin: 0;
-  padding: 0.25em 0;
+  width: 0;
   white-space: nowrap;
   overflow: hidden;
-  border-right: 0.15em solid #4ade80;
+  border-right: 2px solid;
   opacity: 0;
   animation: 
-    typing 2s steps(40, end) forwards,
+    typing 2s steps(30, end) forwards,
     blink-caret 0.75s step-end infinite;
 }
 
@@ -254,162 +164,56 @@ html, body {
 .typing-animation p:nth-child(4) { animation-delay: 9s; }
 .typing-animation p:nth-child(5) { animation-delay: 12s; }
 
-/* Show each line with a delay */
 .typing-animation p.show {
+  width: 100%;
   opacity: 1;
-  position: static;
   border-right: none;
   animation: none;
 }
 
-/* Cursor for the active line */
 .typing-animation p.typing {
   opacity: 1;
-  position: static;
-  border-right: 0.15em solid #4ade80;
   animation: 
-    typing 2s steps(40, end) forwards,
+    typing 2s steps(30, end) forwards,
     blink-caret 0.75s step-end infinite;
 }
 
-* {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Background color overrides for dark mode */
-.dark .bg-white {
-  background-color: var(--bg-tertiary-dark) !important;
-}
-
-.dark [class*="bg-[#f5f5f5]"] {
-  background-color: var(--bg-primary-dark) !important;
-}
-
-.dark [class*="bg-[#ffffff]"] {
-  background-color: var(--bg-tertiary-dark) !important;
-}
-
-/* Dashboard and content pages */
-.dark .bg-neutral-100,
-.dark .bg-neutral-200 {
-  background-color: var(--bg-primary-dark) !important;
-}
-
-.dark .bg-neutral-900 {
-  background-color: var(--bg-primary-dark) !important;
-}
-
-/* Text colors in dark mode */
-.dark .text-neutral-800,
-.dark .text-neutral-900 {
-  color: var(--text-primary-dark) !important;
-}
-
-/* Text colors in light mode - ensure no white text on light backgrounds */
-:root:not(.dark) .text-white {
-  color: var(--text-primary-light) !important;
-}
-
-:root:not(.dark) .text-neutral-50,
-:root:not(.dark) .text-neutral-100,
-:root:not(.dark) .text-neutral-200 {
-  color: var(--text-secondary-light) !important;
-}
-
-/* Border colors in dark mode */
-.dark .border-neutral-900 {
-  border-color: var(--border-dark) !important;
-}
-
-/* Card styles in dark mode */
-.dark .card {
-  background-color: var(--bg-secondary-dark) !important;
-  border-color: var(--border-dark) !important;
-  color: var(--text-primary-dark) !important;
-}
-
-/* Card styles in light mode - ensure proper text contrast */
-:root:not(.dark) .card {
-  background-color: var(--bg-primary-light) !important;
-  border-color: var(--border-light) !important;
-  color: var(--text-primary-light) !important;
-}
-
-/* Form elements in dark mode */
-.dark input,
-.dark select,
-.dark textarea {
-  background-color: var(--bg-tertiary-dark) !important;
-  color: var(--text-primary-dark) !important;
-  border-color: var(--border-dark) !important;
-}
-
-/* Form elements in light mode - ensure proper text contrast */
-:root:not(.dark) input,
-:root:not(.dark) select,
-:root:not(.dark) textarea {
-  background-color: var(--bg-primary-light) !important;
-  color: var(--text-primary-light) !important;
-  border-color: var(--border-light) !important;
-}
-
-/* SVG icons - ensure proper color in both modes */
-:root:not(.dark) svg[fill="white"] {
-  fill: var(--text-primary-light) !important;
-}
-
-.dark svg[fill="black"] {
-  fill: var(--text-primary-dark) !important;
-}
-
-/* Light mode explicit overrides */
-:root:not(.dark) .dark\:bg-\[\#121212\] {
-  background-color: var(--bg-primary-light) !important;
-}
-
-:root:not(.dark) [class*="dark:text-"] {
-  color: inherit !important;
-}
-
-:root:not(.dark) [class*="dark:border-"] {
-  border-color: inherit !important;
-}
-
-/* Adaptive text utility class */
-.text-adaptive {
-  color: var(--text-primary);
-}
-
-/* Ensure white text is visible in light mode */
-.light .text-white {
-  color: var(--text-primary);
-}
-
-/* Fix for SVG icons */
-.light svg[fill="white"] {
-  fill: var(--text-primary);
-}
-
-/* Theme transition */
-.theme-transition * {
-  transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, fill 0.3s ease !important;
-}
-
-/* Apply CSS variables to elements with specific classes */
-.bg-adaptive {
-  background-color: var(--bg-primary);
-}
-
-.border-adaptive {
-  border-color: var(--border-color);
-}
-
+/* ===== DOT GRID PATTERN BACKGROUND ===== */
 .bg-grid-pattern {
-  background-size: 40px 40px;
-  background-image: url('/grid-pattern.svg');
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.3) 1px, transparent 0);
+  background-size: 24px 24px;
+  background-repeat: repeat;
 }
 
 .dark .bg-grid-pattern {
-  background-size: 40px 40px;
-  background-image: url('/grid-pattern-dark.svg');
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.2) 1px, transparent 0);
+  background-size: 24px 24px;
+  background-repeat: repeat;
 }
+
+/* Alternative line grid pattern */
+.bg-line-grid {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark .bg-line-grid {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ===== RETRO PIXEL FONT ===== */
+.font-pixel {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+/* ===== RETRO UI SHADOWS ===== */
