@@ -6,6 +6,7 @@ import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
 import { ProjectCard } from "@/components/projects/project-card";
 import { EditProjectModal } from "@/components/projects/edit-project-modal";
+import { ProjectCardSkeletonList } from "@/components/retroui/skeletons";
 import { Project } from "@/lib/types/project";
 
 interface ProjectListProps {
@@ -30,32 +31,7 @@ export default function ProjectList({
 
   // * Show loading skeleton
   if (isLoading) {
-    return (
-      <div className="animate-pulse space-y-6">
-        {[1, 2, 3].map((i) => (
-          <Card
-            key={i}
-            className="p-6 border-3 border-gray-300 dark:border-gray-700"
-          >
-            <div className="flex justify-between items-start gap-4">
-              <div className="flex-1 space-y-3">
-                <div className="h-6 bg-gray-200 dark:bg-gray-800 rounded w-1/3"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-2/3"></div>
-                <div className="flex gap-2">
-                  <div className="h-6 bg-gray-200 dark:bg-gray-800 rounded w-16"></div>
-                  <div className="h-6 bg-gray-200 dark:bg-gray-800 rounded w-20"></div>
-                  <div className="h-6 bg-gray-200 dark:bg-gray-800 rounded w-24"></div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded w-20"></div>
-                <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded w-16"></div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-    );
+    return <ProjectCardSkeletonList count={3} />;
   }
 
   // * Show error message

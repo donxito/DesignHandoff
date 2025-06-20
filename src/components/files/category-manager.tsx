@@ -21,6 +21,7 @@ import {
   DialogFooter,
 } from "@/components/retroui/Dialog";
 import { Plus, FolderPlus, Edit3, Trash2, Files, Palette } from "lucide-react";
+import { FileListSkeleton } from "@/components/retroui/skeletons";
 
 interface CategoryManagerProps {
   projectId: string;
@@ -153,17 +154,18 @@ export function CategoryManager({ projectId }: CategoryManagerProps) {
 
   if (isLoading) {
     return (
-      <Card className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 dark:bg-gray-800 rounded w-1/3"></div>
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-12 bg-gray-200 dark:bg-gray-800 rounded"
-              ></div>
-            ))}
+      <Card className="p-6 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <FolderPlus className="h-6 w-6 text-blue-500" />
+            <Text
+              as="h3"
+              className="text-xl font-bold font-pixel text-black dark:text-white"
+            >
+              File Categories
+            </Text>
           </div>
+          <FileListSkeleton count={3} />
         </div>
       </Card>
     );

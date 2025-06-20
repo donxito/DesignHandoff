@@ -38,6 +38,7 @@ import {
   useCancelInvitation,
   useResendInvitation,
 } from "@/hooks/use-team";
+import { TeamMemberListSkeleton } from "@/components/retroui/skeletons";
 
 interface ProjectTeamSectionProps {
   project: Project;
@@ -133,19 +134,17 @@ export function ProjectTeamSection({ project }: ProjectTeamSectionProps) {
   if (isLoading) {
     return (
       <Card className="p-6 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-                </div>
-              </div>
-            ))}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Users className="h-6 w-6 text-blue-500" />
+            <Text
+              as="h3"
+              className="text-xl font-bold font-pixel text-black dark:text-white"
+            >
+              Team Members
+            </Text>
           </div>
+          <TeamMemberListSkeleton count={3} />
         </div>
       </Card>
     );

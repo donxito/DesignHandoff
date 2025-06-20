@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import React from "react";
+import { LoadingSpinner } from "./skeletons/LoadingSpinner";
 
 const buttonVariants = cva(
   "font-head transition-all outline-none cursor-pointer flex items-center justify-center relative",
@@ -36,6 +37,8 @@ interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  loading?: boolean;
+  loadingText?: string;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -45,16 +48,31 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       size = "md",
       className = "",
       variant = "default",
+      loading = false,
+      loadingText = "Loading...",
+      disabled,
       ...props
     }: ButtonProps,
     forwardedRef
   ) => (
     <button
       ref={forwardedRef}
-      className={cn(buttonVariants({ variant, size }), className)}
+      className={cn(
+        buttonVariants({ variant, size }),
+        loading && "opacity-80 cursor-not-allowed",
+        className
+      )}
+      disabled={loading || disabled}
       {...props}
     >
-      {children}
+      {loading ? (
+        <div className="flex items-center gap-2">
+          <LoadingSpinner size="sm" variant="secondary" />
+          {loadingText}
+        </div>
+      ) : (
+        children
+      )}
     </button>
   )
 );

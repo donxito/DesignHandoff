@@ -14,6 +14,7 @@ import { Alert } from "@/components/retroui/Alert";
 import { Badge } from "@/components/retroui/Badge";
 import { formatDistanceToNow } from "date-fns";
 import { User, Calendar, Mail, CheckCircle, Edit3 } from "lucide-react";
+import { UserProfileSkeleton } from "@/components/retroui/skeletons";
 
 interface UserProfileProps {
   className?: string;
@@ -81,23 +82,7 @@ export default function UserProfile({ className }: UserProfileProps) {
   const profileCompletion = getProfileCompletion();
 
   if (isLoading) {
-    return (
-      <Card className={`max-w-2xl p-6 ${className}`}>
-        <div className="animate-pulse space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="h-24 w-24 bg-gray-200 dark:bg-gray-800 rounded-full"></div>
-            <div className="space-y-2">
-              <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded w-48"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-32"></div>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-full"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4"></div>
-          </div>
-        </div>
-      </Card>
-    );
+    return <UserProfileSkeleton />;
   }
 
   return (
