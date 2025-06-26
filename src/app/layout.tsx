@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { StagewiseToolbar } from "@stagewise/toolbar-next";
+import { ReactPlugin } from "@stagewise-plugins/react";
 
 // Load Inter font for body text
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -26,6 +28,11 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased bg-white dark:bg-gray-900 bg-grid-pattern text-black dark:text-white`}
         suppressHydrationWarning={true}
       >
+        <StagewiseToolbar
+          config={{
+            plugins: [ReactPlugin],
+          }}
+        />
         <Providers>
           {/* Main content area with grid pattern background */}
           <main className="flex-1 bg-line-grid">
