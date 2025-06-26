@@ -28,11 +28,14 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased bg-white dark:bg-gray-900 bg-grid-pattern text-black dark:text-white`}
         suppressHydrationWarning={true}
       >
-        <StagewiseToolbar
-          config={{
-            plugins: [ReactPlugin],
-          }}
-        />
+        {/* Only render StagewiseToolbar in development mode */}
+        {process.env.NODE_ENV === "development" && (
+          <StagewiseToolbar
+            config={{
+              plugins: [ReactPlugin],
+            }}
+          />
+        )}
         <Providers>
           {/* Main content area with grid pattern background */}
           <main className="flex-1 bg-line-grid">
