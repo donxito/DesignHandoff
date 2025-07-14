@@ -1,115 +1,96 @@
-import { useState } from "react";
-import { Project } from "@/lib/types/project";
-import { Card } from "@/components/retroui/Card";
-import { Text } from "@/components/retroui/Text";
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/retroui/Button";
-import { Avatar } from "@/components/retroui/Avatar";
+import { Card } from "@/components/retroui/Card";
 import { Badge } from "@/components/retroui/Badge";
+import { Avatar } from "@/components/retroui/Avatar";
 import { Textarea } from "@/components/retroui/Textarea";
+import { Text } from "@/components/retroui/Text";
+import { Project } from "@/lib/types/project";
+import { Comment } from "@/lib/types/comment";
+import {
+  useProjectCommentsRealtime,
+  useCreateProjectComment,
+} from "@/hooks/use-comments-query";
+import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { MessageSquare, Send, Clock, User } from "lucide-react";
+import { MessageSquare, Send, Clock, User, Bell } from "lucide-react";
 
 interface ProjectCommentsSectionProps {
   project: Project;
 }
 
-// Mock comment data structure
-interface ProjectComment {
-  id: string;
-  content: string;
-  author: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  created_at: string;
-  replies?: ProjectComment[];
-}
-
-export function ProjectCommentsSection(
-  {
-    // project,
-  }: ProjectCommentsSectionProps
-) {
+export function ProjectCommentsSection({
+  project,
+}: ProjectCommentsSectionProps) {
   const [newComment, setNewComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastCommentCount, setLastCommentCount] = useState(0);
+  const [showNewCommentAlert, setShowNewCommentAlert] = useState(false);
+  const { toast } = useToast();
 
-  // Mock comments data
-  // TODO: Fetch comments from API
-  const [comments, setComments] = useState<ProjectComment[]>([
-    {
-      id: "1",
-      content:
-        "Great project! The design direction looks promising. Looking forward to seeing how this develops.",
-      author: {
-        id: "user1",
-        name: "Alex Designer",
-      },
-      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      replies: [
-        {
-          id: "1-1",
-          content:
-            "Thanks! We're excited about the direction too. The team has been working hard on the user experience.",
-          author: {
-            id: "user2",
-            name: "Jordan Developer",
-          },
-          created_at: new Date(
-            Date.now() - 1 * 24 * 60 * 60 * 1000
-          ).toISOString(),
-        },
-      ],
-    },
-    {
-      id: "2",
-      content:
-        "I have some feedback on the color palette. Could we schedule a meeting to discuss?",
-      author: {
-        id: "user3",
-        name: "Sam Reviewer",
-      },
-      created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    },
-  ]);
+  // * Get real project comments with realtime updates
+  const {
+    data: comments = [],
+    isLoading,
+    unreadCount,
+  } = useProjectCommentsRealtime(project.id);
 
+  // * Create project comment mutation
+  const createCommentMutation = useCreateProjectComment();
+
+  // * Show notification when new comments arrive
+  useEffect(() => {
+    if (comments.length > lastCommentCount && lastCommentCount > 0) {
+      setShowNewCommentAlert(true);
+      const timer = setTimeout(() => setShowNewCommentAlert(false), 3000);
+      return () => clearTimeout(timer);
+    }
+    setLastCommentCount(comments.length);
+  }, [comments.length, lastCommentCount]);
+
+  // * Handle submit comment
   const handleSubmitComment = async () => {
     if (!newComment.trim()) return;
 
-    setIsSubmitting(true);
+    try {
+      await createCommentMutation.mutateAsync({
+        projectId: project.id,
+        content: newComment.trim(),
+        // No x,y coordinates for project-level comments
+      });
 
-    // TODO: Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const comment: ProjectComment = {
-      id: Date.now().toString(),
-      content: newComment.trim(),
-      author: {
-        id: "current-user",
-        name: "You",
-      },
-      created_at: new Date().toISOString(),
-    };
-
-    setComments((prev) => [comment, ...prev]);
-    setNewComment("");
-    setIsSubmitting(false);
+      setNewComment("");
+      toast({
+        message: "Comment posted",
+        description: "Your comment has been added successfully",
+        variant: "success",
+      });
+    } catch (error) {
+      console.error("❌ Error creating comment:", error);
+      toast({
+        message: "Failed to post comment",
+        description: "Please try again",
+        variant: "error",
+      });
+    }
   };
 
+  // * Comment component
   const CommentComponent = ({
     comment,
     isReply = false,
   }: {
-    comment: ProjectComment;
+    comment: Comment;
     isReply?: boolean;
   }) => (
     <div
-      className={`${isReply ? "ml-8 mt-3" : ""} p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700`}
+      className={`${isReply ? "ml-8 mt-3" : ""} p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg`}
     >
       <div className="flex items-start gap-3">
         <Avatar variant="primary" className="w-8 h-8 flex-shrink-0">
           <Avatar.Fallback className="bg-blue-200 text-blue-800 text-xs">
-            {comment.author.name.charAt(0)}
+            {comment.user?.full_name?.charAt(0) || "U"}
           </Avatar.Fallback>
         </Avatar>
 
@@ -119,7 +100,7 @@ export function ProjectCommentsSection(
               as="span"
               className="font-bold font-pixel text-black dark:text-white text-sm"
             >
-              {comment.author.name}
+              {comment.user?.full_name || "Anonymous"}
             </Text>
             <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
               <Clock className="h-3 w-3" />
@@ -142,7 +123,7 @@ export function ProjectCommentsSection(
             <Button
               variant="link"
               size="sm"
-              className="text-xs p-0 h-auto font-pixel"
+              className="text-xs p-0 h-auto font-pixel hover:text-purple-600"
             >
               Reply
             </Button>
@@ -153,7 +134,7 @@ export function ProjectCommentsSection(
       {/* Replies */}
       {comment.replies && comment.replies.length > 0 && (
         <div className="mt-3">
-          {comment.replies.map((reply) => (
+          {comment.replies.map((reply: Comment) => (
             <CommentComponent key={reply.id} comment={reply} isReply={true} />
           ))}
         </div>
@@ -163,6 +144,20 @@ export function ProjectCommentsSection(
 
   return (
     <div className="space-y-6">
+      {/* Real-time notification alert */}
+      {showNewCommentAlert && (
+        <div className="fixed top-4 right-4 z-50 animate-bounce">
+          <Card className="p-3 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700 shadow-lg">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-green-600" />
+              <Text className="font-pixel text-green-800 dark:text-green-200 text-sm">
+                New comment added!
+              </Text>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Comments Header */}
       <Card className="p-6 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]">
         <div className="flex items-center justify-between mb-6">
@@ -174,6 +169,11 @@ export function ProjectCommentsSection(
             >
               Project Comments
             </Text>
+            {unreadCount > 0 && (
+              <Badge variant="primary" size="sm" className="animate-pulse">
+                {unreadCount} new
+              </Badge>
+            )}
           </div>
           <Badge variant="secondary" size="sm">
             {comments.length} comment{comments.length !== 1 ? "s" : ""}
@@ -182,6 +182,7 @@ export function ProjectCommentsSection(
 
         <Text as="p" className="mb-6 font-pixel text-black dark:text-white">
           Share feedback, ideas, and collaborate with your team on this project.
+          {comments.length === 0 && " Start the conversation!"} 💬
         </Text>
 
         {/* New Comment Form */}
@@ -199,18 +200,20 @@ export function ProjectCommentsSection(
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 rows={3}
-                className="w-full mb-3"
+                className="w-full mb-3 transition-all duration-200 focus:ring-2 focus:ring-purple-500"
               />
 
               <div className="flex justify-end">
                 <Button
                   variant="primary"
                   onClick={handleSubmitComment}
-                  disabled={!newComment.trim() || isSubmitting}
-                  className="flex items-center gap-2"
+                  disabled={
+                    !newComment.trim() || createCommentMutation.isPending
+                  }
+                  className="flex items-center gap-2 transition-all duration-200 hover:scale-105"
                   size="sm"
                 >
-                  {isSubmitting ? (
+                  {createCommentMutation.isPending ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Posting...
@@ -230,10 +233,26 @@ export function ProjectCommentsSection(
 
       {/* Comments List */}
       <Card className="p-6 border-3 border-black dark:border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.5)]">
-        {comments.length > 0 ? (
+        {isLoading ? (
+          <div className="text-center py-8">
+            <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <Text
+              as="p"
+              className="font-pixel text-gray-600 dark:text-gray-300"
+            >
+              Loading comments...
+            </Text>
+          </div>
+        ) : comments.length > 0 ? (
           <div className="space-y-4">
-            {comments.map((comment) => (
-              <CommentComponent key={comment.id} comment={comment} />
+            {comments.map((comment, index) => (
+              <div
+                key={comment.id}
+                className="animate-fadeIn"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <CommentComponent comment={comment} />
+              </div>
             ))}
           </div>
         ) : (
@@ -272,6 +291,22 @@ export function ProjectCommentsSection(
           <li>• Consider the context and timeline when providing feedback</li>
         </ul>
       </Card>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

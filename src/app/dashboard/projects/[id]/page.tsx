@@ -35,6 +35,7 @@ import {
   ProjectCommentsSection,
 } from "@/components/projects/sections";
 import { ProjectDetailsSkeleton } from "@/components/retroui/skeletons";
+import { useProjectCommentsRealtime } from "@/hooks/use-comments-query";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
@@ -43,6 +44,11 @@ export default function ProjectDetailPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const { toast } = useToast();
+
+  // * Get live comment count for the tab badge
+  const { data: comments = [], unreadCount } = useProjectCommentsRealtime(
+    projectId || ""
+  );
 
   // * Handle file upload completion
   const handleFileUploadComplete = () => {
@@ -191,7 +197,19 @@ export default function ProjectDetailPage() {
           </TabsTrigger>
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
-          <TabsTrigger value="comments">Comments</TabsTrigger>
+          <TabsTrigger value="comments">
+            Comments
+            {comments.length > 0 && (
+              <Badge variant="primary" className="ml-2">
+                {comments.length}
+              </Badge>
+            )}
+            {unreadCount > 0 && (
+              <Badge variant="danger" className="ml-1">
+                {unreadCount} new
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
