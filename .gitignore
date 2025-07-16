@@ -46,6 +46,5 @@ next-env.d.ts
 .cursor/
 
 
-# windsurf
-.windsurfrules
-.windsurf
+# bmad
+.bmad-core
