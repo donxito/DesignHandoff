@@ -240,42 +240,6 @@ export default function DashboardContent({ user }: DashboardContentProps = {}) {
           </Button>
         </Card>
       </div>
-
-      {/* Feature Highlights */}
-      <div className="mt-12 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
-        <Text
-          as="h3"
-          className="text-lg font-bold mb-4 font-pixel text-black dark:text-white"
-        >
-          ✨ Portfolio Features Showcase
-        </Text>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <Palette className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <Text className="font-pixel text-gray-700 dark:text-gray-300">
-              Automatic design spec extraction
-            </Text>
-          </div>
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
-            <Text className="font-pixel text-gray-700 dark:text-gray-300">
-              Real-time collaboration & comments
-            </Text>
-          </div>
-          <div className="flex items-center gap-2">
-            <FolderOpen className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-            <Text className="font-pixel text-gray-700 dark:text-gray-300">
-              Smart file organization & categories
-            </Text>
-          </div>
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-            <Text className="font-pixel text-gray-700 dark:text-gray-300">
-              Team management & permissions
-            </Text>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
