@@ -15,7 +15,6 @@ import {
   Upload,
   Users,
   MessageSquare,
-  Palette,
   ArrowRight,
   TrendingUp,
 } from "lucide-react";
