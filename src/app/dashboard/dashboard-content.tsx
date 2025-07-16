@@ -3,10 +3,22 @@
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { useProjects } from "@/hooks/use-project-query";
+import { DemoInitializer } from "@/components/dashboard/demo-initializer";
 // RetroUI components
 import { Button } from "@/components/retroui/Button";
 import { Text } from "@/components/retroui/Text";
 import { Card } from "@/components/retroui/Card";
+import { Badge } from "@/components/retroui/Badge";
+import {
+  FolderOpen,
+  Upload,
+  Users,
+  MessageSquare,
+  Palette,
+  ArrowRight,
+  TrendingUp,
+} from "lucide-react";
 
 type DashboardContentProps = {
   user?: User;
@@ -21,7 +33,21 @@ export default function DashboardContent({ user }: DashboardContentProps = {}) {
   const currentUser = user || clientUser;
   const router = useRouter();
 
-  // Navigation handlers
+  // Fetch projects to show stats
+  const { data: projectsResponse } = useProjects();
+  const projects = projectsResponse?.projects || [];
+
+  // Calculate quick stats
+  const activeProjects = projects.filter(
+    (p) => p.status === "active" || !p.status
+  ).length;
+  const totalFiles = projects.reduce((sum, p) => sum + (p.files_count || 0), 0);
+  const totalMembers = projects.reduce(
+    (sum, p) => sum + (p.members_count || 0),
+    0
+  );
+
+  // Navigation handlers with router.push() following workspace rules [[memory:675834]]
   const handleNavigateToUpload = () => {
     router.push("/dashboard/upload");
   };
@@ -30,16 +56,108 @@ export default function DashboardContent({ user }: DashboardContentProps = {}) {
     router.push("/dashboard/projects");
   };
 
+  const handleNavigateToTeam = () => {
+    router.push("/dashboard/team");
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#121212] bg-[url('/grid-pattern.svg')] dark:bg-[url('/grid-pattern-dark.svg')]">
-      <Text
-        as="p"
-        className="mb-6 font-pixel text-black dark:text-white text-adaptive"
-      >
-        Welcome, {currentUser?.email || "User"}
-      </Text>
+      <div className="mb-6">
+        <Text
+          as="h1"
+          className="text-2xl font-bold mb-2 font-pixel text-black dark:text-white text-adaptive"
+        >
+          Welcome back, {currentUser?.email?.split("@")[0] || "User"}!
+        </Text>
+        <Text
+          as="p"
+          className="text-gray-600 dark:text-gray-300 font-pixel text-adaptive"
+        >
+          Manage your design projects and collaborate with your team
+        </Text>
+      </div>
+
+      {/* Demo Data Initializer */}
+      <DemoInitializer />
+
+      {/* Quick Stats */}
+      {projects.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="p-4 border-2 border-neutral-900 dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <Text className="text-2xl font-bold font-pixel text-black dark:text-white">
+                  {activeProjects}
+                </Text>
+                <Text className="text-sm text-gray-600 dark:text-gray-300 font-pixel">
+                  Active Projects
+                </Text>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 border-2 border-neutral-900 dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                <FolderOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <Text className="text-2xl font-bold font-pixel text-black dark:text-white">
+                  {totalFiles}
+                </Text>
+                <Text className="text-sm text-gray-600 dark:text-gray-300 font-pixel">
+                  Design Files
+                </Text>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 border-2 border-neutral-900 dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <Text className="text-2xl font-bold font-pixel text-black dark:text-white">
+                  {totalMembers}
+                </Text>
+                <Text className="text-sm text-gray-600 dark:text-gray-300 font-pixel">
+                  Team Members
+                </Text>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 border-2 border-neutral-900 dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                <MessageSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <Text className="text-2xl font-bold font-pixel text-black dark:text-white">
+                  Real-time
+                </Text>
+                <Text className="text-sm text-gray-600 dark:text-gray-300 font-pixel">
+                  Collaboration
+                </Text>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Main Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-        <Card className="p-6 border-4 border-neutral-900 dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+        <Card className="p-6 border-4 border-neutral-900 dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)] transition-all duration-200">
+          <div className="flex items-center gap-3 mb-4">
+            <FolderOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <Badge variant="primary" className="text-xs">
+              {projects.length} Projects
+            </Badge>
+          </div>
           <Text
             as="h2"
             className="text-xl font-semibold mb-2 font-pixel text-black dark:text-white text-adaptive"
@@ -48,35 +166,57 @@ export default function DashboardContent({ user }: DashboardContentProps = {}) {
           </Text>
           <Text
             as="p"
-            className="mb-4 font-pixel text-black dark:text-white text-adaptive"
+            className="mb-4 font-pixel text-gray-600 dark:text-gray-300 text-adaptive text-sm"
           >
-            Create and manage your design projects
+            Create and manage your design projects. View files, collaborate with
+            team members, and track progress.
           </Text>
           <Button
             onClick={handleNavigateToProjects}
-            className="mt-4 font-pixel"
+            className="mt-4 font-pixel w-full group"
           >
-            View Projects
+            Manage Projects
+            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </Card>
-        <Card className="p-6 border-4 border-neutral-900 dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+
+        <Card className="p-6 border-4 border-neutral-900 dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)] transition-all duration-200">
+          <div className="flex items-center gap-3 mb-4">
+            <Upload className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <Badge variant="secondary" className="text-xs">
+              Quick Upload
+            </Badge>
+          </div>
           <Text
             as="h2"
             className="text-xl font-semibold mb-2 font-pixel text-black dark:text-white text-adaptive"
           >
-            Recent Files
+            Upload Files
           </Text>
           <Text
             as="p"
-            className="mb-4 font-pixel text-black dark:text-white text-adaptive"
+            className="mb-4 font-pixel text-gray-600 dark:text-gray-300 text-adaptive text-sm"
           >
-            View and manage your recent design files
+            Upload design files, mockups, and assets. Supported formats: PNG,
+            JPG, WebP, PDF.
           </Text>
-          <Button onClick={handleNavigateToUpload} className="mt-4 font-pixel">
+          <Button
+            onClick={handleNavigateToUpload}
+            className="mt-4 font-pixel w-full group"
+            variant="secondary"
+          >
             Upload Files
+            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </Card>
-        <Card className="p-6 border-4 border-neutral-900 dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e]">
+
+        <Card className="p-6 border-4 border-neutral-900 dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] bg-white dark:bg-[#1e1e1e] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.5)] transition-all duration-200">
+          <div className="flex items-center gap-3 mb-4">
+            <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <Badge variant="outline" className="text-xs">
+              Collaboration
+            </Badge>
+          </div>
           <Text
             as="h2"
             className="text-xl font-semibold mb-2 font-pixel text-black dark:text-white text-adaptive"
@@ -85,12 +225,50 @@ export default function DashboardContent({ user }: DashboardContentProps = {}) {
           </Text>
           <Text
             as="p"
-            className="mb-4 font-pixel text-black dark:text-white text-adaptive"
+            className="mb-4 font-pixel text-gray-600 dark:text-gray-300 text-adaptive text-sm"
           >
-            Invite and collaborate with team members
+            Invite and collaborate with team members. Manage roles and
+            permissions for seamless workflow.
           </Text>
-          <Button className="mt-4 font-pixel">Invite Member</Button>
+          <Button
+            onClick={handleNavigateToTeam}
+            className="mt-4 font-pixel w-full group"
+            variant="outline"
+          >
+            Manage Team
+            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
         </Card>
+      </div>
+
+      {/* Feature Highlights */}
+      <div className="mt-12 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <Palette className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <Text className="font-pixel text-gray-700 dark:text-gray-300">
+              Automatic design spec extraction
+            </Text>
+          </div>
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <Text className="font-pixel text-gray-700 dark:text-gray-300">
+              Real-time collaboration & comments
+            </Text>
+          </div>
+          <div className="flex items-center gap-2">
+            <FolderOpen className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            <Text className="font-pixel text-gray-700 dark:text-gray-300">
+              Smart file organization & categories
+            </Text>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            <Text className="font-pixel text-gray-700 dark:text-gray-300">
+              Team management & permissions
+            </Text>
+          </div>
+        </div>
       </div>
     </div>
   );
