@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Text } from "@/components/retroui/Text";
 
 export default function FooterSection() {
@@ -17,158 +16,83 @@ export default function FooterSection() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-          <div>
-            <div className="flex items-center mb-4">
-              <div className="w-10 h-10 bg-pink-500 border-3 border-white rounded-full flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-lg">D</span>
-              </div>
-              <Text
-                as="h3"
-                className="text-xl font-bold font-pixel text-yellow-400"
+        <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-8">
+          {/* Brand/Logo */}
+          <div className="flex items-center mb-4 md:mb-0">
+            <div className="w-10 h-10 bg-pink-500 border-3 border-white rounded-full flex items-center justify-center mr-3">
+              <span className="text-white font-bold text-lg">D</span>
+            </div>
+            <Text
+              as="h3"
+              className="text-xl font-bold font-pixel text-yellow-400"
+            >
+              DesignHandoff
+            </Text>
+          </div>
+
+          {/* Social Icons */}
+          <div className="flex space-x-4">
+            {/* LinkedIn */}
+            <a
+              href="https://www.linkedin.com/in/miguelchito-reactdeveloper/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="w-10 h-10 flex items-center justify-center border-2 border-gray-700 hover:border-pink-500 rounded-full transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-400 hover:text-pink-400 transition-colors"
+                viewBox="0 0 24 24"
+                fill="currentColor"
               >
-                DesignHandoff
-              </Text>
-            </div>
-            <Text as="p" className="text-gray-400 mb-4">
-              Bridging the gap between design and development with retro style.
-            </Text>
-            <div className="flex space-x-4">
-              {["twitter", "github", "instagram"].map((social) => (
-                <a
-                  key={social}
-                  href="#"
-                  className="w-10 h-10 flex items-center justify-center border-2 border-gray-700 hover:border-pink-500 rounded-full transition-colors"
-                  aria-label={`${social} link`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-gray-400 hover:text-pink-400 transition-colors"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    {social === "twitter" && (
-                      <path d="M22 4.01c-1 .49-1.98.689-3 .99-1.121-1.265-2.783-1.335-4.38-.737S11.977 6.323 12 8v1c-3.245.083-6.135-1.395-8-4 0 0-4.182 7.433 4 11-1.872 1.247-3.739 2.088-6 2 3.308 1.803 6.913 2.423 10.034 1.517 3.58-1.04 6.522-3.723 7.651-7.742a13.84 13.84 0 0 0 .497-3.753C20.18 7.773 21.692 5.25 22 4.009z" />
-                    )}
-                    {social === "github" && (
-                      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-                    )}
-                    {social === "instagram" && (
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37zM17.5 6.5h.01M7 22h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5z" />
-                    )}
-                  </svg>
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Text
-              as="h4"
-              className="text-lg font-bold mb-4 font-pixel text-yellow-400"
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm15.5 11.268h-3v-5.604c0-1.337-.025-3.063-1.868-3.063-1.868 0-2.154 1.459-2.154 2.967v5.7h-3v-10h2.881v1.367h.041c.401-.761 1.379-1.563 2.841-1.563 3.039 0 3.6 2.001 3.6 4.601v5.595z" />
+              </svg>
+            </a>
+            {/* GitHub */}
+            <a
+              href="https://github.com/donxito"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+              className="w-10 h-10 flex items-center justify-center border-2 border-gray-700 hover:border-pink-500 rounded-full transition-colors"
             >
-              Product
-            </Text>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-pink-400 transition-colors"
-                >
-                  Features
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-pink-400 transition-colors"
-                >
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-pink-400 transition-colors"
-                >
-                  Integrations
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <Text
-              as="h4"
-              className="text-lg font-bold mb-4 font-pixel text-yellow-400"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-400 hover:text-pink-400 transition-colors"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+              </svg>
+            </a>
+            {/* Website */}
+            <a
+              href="https://mchito.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Personal Website"
+              className="w-10 h-10 flex items-center justify-center border-2 border-gray-700 hover:border-pink-500 rounded-full transition-colors"
             >
-              Resources
-            </Text>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-pink-400 transition-colors"
-                >
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-pink-400 transition-colors"
-                >
-                  Tutorials
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-pink-400 transition-colors"
-                >
-                  Blog
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <Text
-              as="h4"
-              className="text-lg font-bold mb-4 font-pixel text-yellow-400"
-            >
-              Company
-            </Text>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-pink-400 transition-colors"
-                >
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-pink-400 transition-colors"
-                >
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-400 hover:text-pink-400 transition-colors"
-                >
-                  Privacy
-                </Link>
-              </li>
-            </ul>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-400 hover:text-pink-400 transition-colors"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+            </a>
           </div>
         </div>
 
@@ -190,7 +114,7 @@ export default function FooterSection() {
         </div>
 
         {/* Retro console info */}
-        <div className="mt-6 text-center font-mono text-xs text-gray-700">
+        <div className="mt-6 text-center font-mono text-xs text-gray-400">
           <p>
             DesignHandoff v1.0 · Memory: 640K (That should be enough for
             anybody)
