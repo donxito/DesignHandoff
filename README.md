@@ -2,7 +2,7 @@
 
 <img width="2053" height="638" alt="Screenshot 2025-07-16 at 15 32 21" src="https://github.com/user-attachments/assets/b4d2af48-ffde-4009-90ca-61a3db6c5353" />
 
-[![Live Demo]](https://designhandoff.vercel.app/)
+**[View Live Application](https://designhandoff.vercel.app)**
 
 ## About
 
@@ -179,11 +179,12 @@ The auth system will automatically use the correct callback URLs based on the en
 
 ## **Screenshots**
 
+<img width="2053" height="1093" alt="Screenshot 2025-07-16 at 15 15 15" src="https://github.com/user-attachments/assets/ca3a3012-e083-4fa0-9e92-f6032a60b233" />
 <img width="2053" height="1093" alt="Screenshot 2025-07-16 at 15 17 44" src="https://github.com/user-attachments/assets/e11896c2-2096-4af8-aee2-abc1fa6d27a8" />
 <img width="2053" height="1093" alt="Screenshot 2025-07-16 at 15 15 43" src="https://github.com/user-attachments/assets/85a1fb07-22a2-4614-b97d-b57a79f822d1" />
 <img width="2053" height="1093" alt="Screenshot 2025-07-16 at 15 25 21" src="https://github.com/user-attachments/assets/f1609b69-60a2-4665-928f-e5a0bc714d5f" />
 <img width="2053" height="1093" alt="Screenshot 2025-07-16 at 15 18 11" src="https://github.com/user-attachments/assets/caf15f32-d601-4840-a617-edd4658da207" />
 <img width="2053" height="1093" alt="Screenshot 2025-07-16 at 15 17 58" src="https://github.com/user-attachments/assets/7464819b-a698-4321-a787-4c0ae6556c39" />
 <img width="2053" height="1093" alt="Screenshot 2025-07-16 at 15 15 22" src="https://github.com/user-attachments/assets/b5310a83-9571-45da-9a06-f8a2b3ca4b07" />
-<img width="2053" height="1093" alt="Screenshot 2025-07-16 at 15 15 15" src="https://github.com/user-attachments/assets/ca3a3012-e083-4fa0-9e92-f6032a60b233" />
+
 
